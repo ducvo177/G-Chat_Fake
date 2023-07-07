@@ -129,3 +129,4 @@ import { MenuOutlined } from '@ant-design/icons-vue';
     color: #959595;
 }
 </style>
+
