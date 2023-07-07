@@ -169,8 +169,8 @@ import { Avatar } from 'ant-design-vue';
 </template>
 <style scoped>
 .chatbox-container{
-    width: 80vw;
-    height: 100vh;
+    width: 77vw;
+    border-left: 2px solid rgba(226,224,224,.66);
     padding-top:5%;
     padding-bottom:11%;
     overflow: auto;
