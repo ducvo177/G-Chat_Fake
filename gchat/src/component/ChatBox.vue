@@ -187,10 +187,12 @@ import { Avatar } from 'ant-design-vue';
 }
 .image-icon{
     margin: 8px 0 0 20px;
+    cursor: pointer;
 }
 .chatbox-footer-icon{
     margin-right: 5px;
     margin-top: 6px;
+    cursor: pointer;
 }
 .chatbox-footer-attachment{
     display: flex;
@@ -283,7 +285,9 @@ import { Avatar } from 'ant-design-vue';
 
 }
 .ellipsis{
-    font-size: 20px !important;
+    font-size: 30px !important;
+    margin-right: 25%;
+    cursor: pointer;
 }
 .guest_chat-container{
     display: flex;
