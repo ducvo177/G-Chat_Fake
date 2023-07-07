@@ -254,6 +254,7 @@ import { Avatar } from 'ant-design-vue';
 .guest_chat{
     width: 100%;
     margin-top: 20px;
+    margin-left: 20px;
 }
 .guest_chat-time{
     font-size: 12px;
@@ -334,6 +335,7 @@ import { Avatar } from 'ant-design-vue';
     width: 32px;
 }
 .chatbox-title{
+    margin-left: 20px;
     width: 95%;
     font-size: 20px;
     font-weight: 700;
