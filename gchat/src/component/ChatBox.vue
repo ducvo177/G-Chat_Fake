@@ -195,7 +195,7 @@ import { Avatar } from 'ant-design-vue';
 .chatbox-footer-attachment{
     display: flex;
     position: absolute;  
-    left:70.5%;
+    left:67%;
 }
 .chatbox-footer-input{
     box-sizing: border-box;
@@ -203,7 +203,7 @@ import { Avatar } from 'ant-design-vue';
     border-radius: 30px;
     line-height: 1.3;
     background: #f5f4f4;
-    width: 76%;
+    width: 72%;
     height: 50%;
     overflow: hidden;
     padding:20px;
