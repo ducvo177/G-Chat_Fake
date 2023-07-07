@@ -71,9 +71,10 @@ import { Avatar } from 'ant-design-vue';
 </template>
 <style scoped>
 .chatbox-container{
-    width: 80vw;
+    width: 77vw;
     background-color: white;
     height: 100vh;
+    border-left: 2px solid rgba(226,224,224,.66);
 }
 .chatbox-header{
     display: flex;
