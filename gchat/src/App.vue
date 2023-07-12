@@ -1,12 +1,11 @@
 <script setup>
 
-import ChatBox from "../src/component/ChatBox.vue"
-import ChatInfor from "../src/component/ChatInfor.vue"
+import Chat from "../page/Chat.vue";
+import Login from "../page/Auth/Login.vue";
+import { ref } from "vue";
 
 </script>
 
 <template>
-
-<ChatInfor></ChatInfor>
-<ChatBox></ChatBox>
+    <router-view/>
 </template>
