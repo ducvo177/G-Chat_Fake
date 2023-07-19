@@ -4,10 +4,18 @@ import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
 import {database, ref, push, onValue} from '../main.js';
 import {onMounted, reactive} from 'vue';
+import { defineProps } from 'vue';
+
+const props = defineProps({
+  userId: {
+    type: String,
+    required: true
+  }
+});
 
 const messageList = reactive([]);
 const messageForm = reactive({
-    userId: '2342',
+    userId: props.userId,
     userName:'DucVo',
     message: '',
     room: '2030349',
@@ -49,7 +57,7 @@ onMounted(() => {
     </div>
     <!-- Chatbox content -->
     <div class="chatbox-content" v-for="message in messageList">
-        <UserChat v-if='message.userId == "2348"' :message="message" ></UserChat>
+        <UserChat v-if='message.userId == props.userId' :message="message" ></UserChat>
         <GuestChat v-else :guestMessage="message" :userId="messageForm.userId"></GuestChat>
     </div>
     <!-- Chatbox footer -->

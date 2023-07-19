@@ -15,7 +15,12 @@ const register = () => {
         description:
           'Bạn đã đăng nhập thành công'
       })
-      router.push('/chat')
+      router.push({
+        name: 'chat',
+        params: {
+          userId: data.user.uid
+        }
+      });
     })
     .catch((error) => {
         notification['error']({

@@ -1,17 +1,21 @@
 <script setup>
-import { ref } from 'vue'
+import { reactive } from 'vue'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import { notification } from 'ant-design-vue'
-const email = ref('')
-const password = ref('')
-const repeat_password = ref('');
+import {database,ref, push} from '../../src/main';
+const authForm = reactive({
+  email:'',
+  name:'',
+  password:'',
+  repeat_password:'',
+});
 const router = useRouter()
 const register = () => {
     //validate ở đây
   var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
 
-  if(!strongRegex.test(password.value)){
+  if(!strongRegex.test(authForm.password)){
     notification['error']({
       message: 'Error',
       duration: 2,
@@ -20,7 +24,7 @@ const register = () => {
     return;
   }
 
-  if(password.value !== repeat_password.value){
+  if(authForm.password !== authForm.repeat_password){
     notification['error']({
       message: 'Error',
       duration: 2,
@@ -29,8 +33,13 @@ const register = () => {
     return;    
   }
 
-  createUserWithEmailAndPassword(getAuth(), email.value, password.value)
+  createUserWithEmailAndPassword(getAuth(), authForm.email, authForm.password)
     .then((data) => {
+      push(ref(database,'user'),{
+        id:data.user.uid,
+        email:authForm.email,
+        name: authForm.name,
+      });
       notification['success']({
         message: 'Bạn đã đăng nhập thành công',
         description:
@@ -62,13 +71,16 @@ const register = () => {
           </div>
           <span>
             <fieldset class="form-group">
-              <input type="text" placeholder="Email" v-model="email" class="form-control"/>
+              <input type="text" placeholder="Name" v-model="authForm.name" class="form-control"/>
             </fieldset>
             <fieldset class="form-group">
-              <input type="password" placeholder="Password" v-model="password" class="form-control"/>
+              <input type="text" placeholder="Email" v-model="authForm.email" class="form-control"/>
             </fieldset>
             <fieldset class="form-group">
-              <input type="password" placeholder="Repeat Password" v-model="repeat_password" class="form-control"/>
+              <input type="password" placeholder="Password" v-model="authForm.password" class="form-control"/>
+            </fieldset>
+            <fieldset class="form-group">
+              <input type="password" placeholder="Repeat Password" v-model="authForm.repeat_password" class="form-control"/>
             </fieldset>
           </span>
           <div class="button-wrapper">
