@@ -7,7 +7,7 @@ import 'ant-design-vue/dist/antd.css';
 import App from './App.vue'
 import router from './router'
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, push } from "firebase/database";
+import { getDatabase, ref, push, onValue } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAeCcNAtQ6Yd_VhRCQl5nwGQ2m6b7B8oHE",
@@ -21,12 +21,12 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = createApp(App)
-initializeApp(firebaseConfig);
-
+const appchat = initializeApp(firebaseConfig);
+const database = getDatabase(appchat);
 
 app.use(createPinia())
 app.use(Antd);
 app.use(router);
 app.mount('#app')
 
-export{ref,push};
+export{database,ref,push, onValue};
