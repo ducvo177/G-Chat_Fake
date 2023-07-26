@@ -1,4 +1,5 @@
 <script setup>
+
 import { defineProps } from 'vue'
 const props = defineProps({
     message: {
@@ -7,6 +8,7 @@ const props = defineProps({
     }
 })
 </script>
+
 <template>
     <div class="user_chat">
         <div class="user_chat-content">
