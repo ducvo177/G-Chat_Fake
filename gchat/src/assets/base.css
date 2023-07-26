@@ -647,3 +647,20 @@ button, input, optgroup, select, textarea {
   display: -webkit-flex;
   display: flex;
 }
+
+.ant-avatar-group {
+  display: inline-flex;
+}
+
+.avatar-multiple-wrapper {
+  display: -webkit-flex;
+  display: flex;
+}
+
+.avatar-multiple-wraper .avatar-channel {
+  border: 1px solid #fff;
+}
+
+.channel-item {
+  color: hsla(160, 100%, 37%, 1);
+}
