@@ -1,21 +1,20 @@
 <script setup>
-import { defineProps } from 'vue';
 
+import { defineProps } from 'vue'
 const props = defineProps({
-  message: {
-    type: Object,
-    required: true
-  }
-});
-
+    message: {
+        type: Object,
+        default: '',
+    }
+})
 </script>
 
 <template>
-  <div class="user_chat">
-    <div class="user_chat-content">
-      <div class="user_chat-text">
-        {{ message.message }}
-      </div>
+    <div class="user_chat">
+        <div class="user_chat-content">
+            <div class="user_chat-text">
+                {{ props.message.text }}
+            </div>
+        </div>
     </div>
-  </div>
 </template>

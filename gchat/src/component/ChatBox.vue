@@ -2,50 +2,55 @@
 import { EllipsisOutlined} from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
-import {database, ref, push, onValue} from '../main.js';
-import {onMounted, reactive} from 'vue';
-import { defineProps } from 'vue';
+import { ref, onMounted } from 'vue';
+import { defineProps } from 'vue'
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
 const props = defineProps({
-  userId: {
-    type: String,
-    required: true
+    channel_id: {
+        type: Number,
+        default: '',
+    }
+})
+
+
+
+const route = useRoute()
+const channelId = ref(route.params.channel_id);
+const currentUserId = 6623281009872109949;
+const listMessage = ref([]);
+const access_token = ref('eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwMzg2MzE0LCJqdGkiOiIwMUg2OURROFI4RzlTNDRUREFFS1FGVDgwMiIsImlhdCI6MTY5MDM2NDEyMCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJlZG5NTTdKc2d6UUhEVjBHMmpxTzBpdVpPVk9rNFNqeSIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.SPJ3-jInfZBaZbTbe1EH7seE2s1lUwsbA_UCWb0t3vCOZ2ajtbxyOJ2IrLbY5I7L0pkIi28kSNgsGg8TMlDxWQ');
+const chatboxRef = ref()
+
+
+// Hàm để gọi API và lưu kết quả vào listMessage
+async function fetchData() {
+  const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`;
+  try {
+    const response = await axios.get(apiUrl);
+    listMessage.value = response.data.data.reverse();
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
   }
-});
-
-const messageList = reactive([]);
-const messageForm = reactive({
-    userId: props.userId,
-    userName:'DucVo',
-    message: '',
-    room: '2030349',
-    time_created: new Date().getTime(),
-    liked: [],
-    deleted: false,
-});
-
-const sendMessage =()=>{
-    push(ref(database,'message'),messageForm);
-    messageForm.message = '';
-    getMessage();
 }
-const getMessage = ()=>{
-    onValue(ref(database,'message'),data =>{
-        messageList.length = 0; 
-        data.forEach(msg =>{
-            messageList.push(msg.val());
-        })
-       
-    })
-}
+ const scrollToBottom = ()=> {
+      // Hàm để cuộn xuống đáy của div
+      const chatbox = chatboxRef.value;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
 
 onMounted(() => {
-    getMessage();
-});
+    fetchData();
+    scrollToBottom();
+   
+})
+
 </script>
 
 <template>
-<div class="chatbox-container">
+<div class="chatbox-container" ref="chatboxRef" >
     <!-- Chatbox header  -->
     <div class="chatbox-header">
         <h1 class="chatbox-title">
@@ -56,14 +61,14 @@ onMounted(() => {
         </div>
     </div>
     <!-- Chatbox content -->
-    <div class="chatbox-content" v-for="message in messageList">
-        <UserChat v-if='message.userId == props.userId' :message="message" ></UserChat>
-        <GuestChat v-else :guestMessage="message" :userId="messageForm.userId"></GuestChat>
-    </div>
+        <div v-for="message in listMessage" class="chatbox-content"  >
+            <GuestChat v-if="message.sender.id != currentUserId" :message="message"></GuestChat>
+            <UserChat v-else :message="message"></UserChat>
+        </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">
         <div class="chatbox-footer_content">
-            <input type="text" class="chatbox-footer-input" placeholder="Nhập tin nhắn" v-model='messageForm.message' @keydown.enter="sendMessage" />
+            <input type="text" class="chatbox-footer-input" placeholder="Nhập tin nhắn" />
             <div class="chatbox-footer-attachment">
                 <svg width="28" class="text-icon chatbox-footer-icon" height="28" viewBox="0 0 28 28" fill="none"><g id="font_download_24px"><path id="icon/content/font_download_24px" fill-rule="evenodd" clip-rule="evenodd" d="M23.3333 2.33334H4.66667C3.38333 2.33334 2.33333 3.38334 2.33333 4.66668V23.3333C2.33333 24.6167 3.38333 25.6667 4.66667 25.6667H23.3333C24.6167 25.6667 25.6667 24.6167 25.6667 23.3333V4.66668C25.6667 3.38334 24.6167 2.33334 23.3333 2.33334ZM16.415 15.75L14 9.31001L11.585 15.75H16.415ZM17.2783 18.0833L18.3283 20.86C18.5033 21.2917 18.9233 21.5833 19.39 21.5833C20.1833 21.5833 20.7317 20.7783 20.44 20.0433L15.4817 7.43168C15.2367 6.81334 14.6533 6.41668 14 6.41668C13.3467 6.41668 12.7633 6.81334 12.5067 7.43168L7.54833 20.0433C7.25667 20.7783 7.805 21.5833 8.59833 21.5833C9.07667 21.5833 9.49667 21.2917 9.66 20.8483L10.6983 18.0833H17.2783Z" fill="#00904A"></path></g></svg>
                 <svg width="24" class="sticker-icon chatbox-footer-icon" height="24" viewBox="0 0 24 24" fill="none"><g clip-path="url(#clip0_3473_58240)"><path d="M5.14286 0C3.77889 0 2.47078 0.541835 1.50631 1.50631C0.541835 2.47078 0 3.77889 0 5.14286V18.8571C0 20.2211 0.541835 21.5292 1.50631 22.4937C2.47078 23.4582 3.77889 24 5.14286 24H13.7143V18.7149C13.1491 18.811 12.5767 18.8586 12.0034 18.8571C10.14 18.8571 8.72229 18.3909 7.76057 17.9091C7.37564 17.7195 7.00846 17.4957 6.66343 17.2406C6.53451 17.1432 6.41037 17.0396 6.29143 16.9303L6.26571 16.9063L6.25714 16.8977L6.25371 16.8943L6.25029 16.8926C6.08888 16.7323 5.99776 16.5145 5.99695 16.287C5.99615 16.0596 6.08573 15.8411 6.246 15.6797C6.40627 15.5183 6.62409 15.4272 6.85154 15.4264C7.079 15.4256 7.29745 15.5152 7.45886 15.6754L7.464 15.6789L7.50171 15.7131C7.53943 15.7474 7.60457 15.8006 7.692 15.8674C7.87029 16.0011 8.148 16.188 8.52686 16.3766C9.27943 16.7537 10.4349 17.1429 12.0034 17.1429C12.744 17.1429 13.392 17.0554 13.9629 16.9114C14.2801 15.9789 14.8814 15.1691 15.6823 14.5957C16.4832 14.0223 17.4436 13.7141 18.4286 13.7143H24V5.14286C24 3.77889 23.4582 2.47078 22.4937 1.50631C21.5292 0.541835 20.2211 0 18.8571 0H5.14286ZM7.71429 10.2857C7.25963 10.2857 6.82359 10.1051 6.5021 9.78361C6.18061 9.46212 6 9.02609 6 8.57143C6 8.11677 6.18061 7.68074 6.5021 7.35925C6.82359 7.03776 7.25963 6.85714 7.71429 6.85714C8.16894 6.85714 8.60498 7.03776 8.92647 7.35925C9.24796 7.68074 9.42857 8.11677 9.42857 8.57143C9.42857 9.02609 9.24796 9.46212 8.92647 9.78361C8.60498 10.1051 8.16894 10.2857 7.71429 10.2857ZM18 8.57143C18 9.02609 17.8194 9.46212 17.4979 9.78361C17.1764 10.1051 16.7404 10.2857 16.2857 10.2857C15.8311 10.2857 15.395 10.1051 15.0735 9.78361C14.752 9.46212 14.5714 9.02609 14.5714 8.57143C14.5714 8.11677 14.752 7.68074 15.0735 7.35925C15.395 7.03776 15.8311 6.85714 16.2857 6.85714C16.7404 6.85714 17.1764 7.03776 17.4979 7.35925C17.8194 7.68074 18 8.11677 18 8.57143ZM16.788 22.9954C16.404 23.3811 15.936 23.664 15.4286 23.8303V18.4286C15.4286 16.7726 16.7726 15.4286 18.4286 15.4286H23.8303C23.6628 15.9411 23.3768 16.4068 22.9954 16.788L16.788 22.9954Z" fill="#00904A"></path></g><defs><clipPath id="clip0_3473_58240"><rect width="24" height="24" fill="white"></rect></clipPath></defs></svg>

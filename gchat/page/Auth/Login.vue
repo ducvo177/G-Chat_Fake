@@ -15,12 +15,8 @@ const register = () => {
         description:
           'Bạn đã đăng nhập thành công'
       })
-      router.push({
-        name: 'chat',
-        params: {
-          userId: data.user.uid
-        }
-      });
+      router.push({ name: 'chat', params: { channel_id: 4333222501709897463} });
+
     })
     .catch((error) => {
         notification['error']({
