@@ -192,7 +192,7 @@ body {
   padding: 6px 12px;
   margin: 2px 0 0;
   word-break: break-word;
-  width: 60%;
+  width: 100%;
 
 }
 .ellipsis{
@@ -211,7 +211,7 @@ body {
   position: absolute;
   bottom:-20px;
   padding: 0 15px;
-  width: 60%;
+  width: 100%;
   justify-content: space-between;
 }
 .fill-heart{
@@ -232,6 +232,11 @@ body {
   width: 18px;
   height: 18px;
   margin-left:2px ;
+}
+.image_attachment{
+  width: 200px;
+  height: auto;
+  border-radius: 5px;
 }
 .guest_chat-emoji{
   padding: 5px;

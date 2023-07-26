@@ -1,12 +1,55 @@
 <script setup>
 import { EllipsisOutlined} from '@ant-design/icons-vue';
-import { Avatar } from 'ant-design-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
+import { ref, onMounted } from 'vue';
+import { defineProps } from 'vue'
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+
+const props = defineProps({
+    channel_id: {
+        type: Number,
+        default: '',
+    }
+})
+
+
+
+const route = useRoute()
+const channelId = ref(route.params.channel_id);
+const currentUserId = 6623281009872109949;
+const listMessage = ref([]);
+const access_token = ref('eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwMzg2MzE0LCJqdGkiOiIwMUg2OURROFI4RzlTNDRUREFFS1FGVDgwMiIsImlhdCI6MTY5MDM2NDEyMCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJlZG5NTTdKc2d6UUhEVjBHMmpxTzBpdVpPVk9rNFNqeSIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.SPJ3-jInfZBaZbTbe1EH7seE2s1lUwsbA_UCWb0t3vCOZ2ajtbxyOJ2IrLbY5I7L0pkIi28kSNgsGg8TMlDxWQ');
+const chatboxRef = ref()
+
+
+// Hàm để gọi API và lưu kết quả vào listMessage
+async function fetchData() {
+  const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`;
+  try {
+    const response = await axios.get(apiUrl);
+    listMessage.value = response.data.data.reverse();
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+ const scrollToBottom = ()=> {
+      // Hàm để cuộn xuống đáy của div
+      const chatbox = chatboxRef.value;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+onMounted(() => {
+    fetchData();
+    scrollToBottom();
+   
+})
 </script>
 
 <template>
-<div class="chatbox-container">
+<div class="chatbox-container" ref="chatboxRef" >
     <!-- Chatbox header  -->
     <div class="chatbox-header">
         <h1 class="chatbox-title">
@@ -17,13 +60,10 @@ import UserChat from './UserChat.vue';
         </div>
     </div>
     <!-- Chatbox content -->
-    <div class="chatbox-content">
-        <GuestChat></GuestChat>
-        <GuestChat></GuestChat>
-        <UserChat></UserChat>
-        <UserChat></UserChat>
-        <GuestChat></GuestChat>
-    </div>
+        <div v-for="message in listMessage" class="chatbox-content"  >
+            <GuestChat v-if="message.sender.id != currentUserId" :message="message"></GuestChat>
+            <UserChat v-else :message="message"></UserChat>
+        </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">
         <div class="chatbox-footer_content">
