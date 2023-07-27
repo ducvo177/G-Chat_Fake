@@ -3,6 +3,9 @@ import { onMounted, reactive } from 'vue';
 import ChannelItem from '../component/ChannelItem.vue';
 import ChatInforHeader from '../component/ChatInforHeader.vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const baseURL = 'https://chat.ghtk.vn/api/v3/channels';
 const tag_id = '';
@@ -10,7 +13,7 @@ const group_id = 1;
 const is_favorite = 0;
 const limit = 40;
 const after = '';
-const token = 'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwMzkzMDc2LCJqdGkiOiIwMUg2OU01TTVLV1FLS0gwM0JFMkc5MjZFSiIsImlhdCI6MTY5MDM2NTYxOSwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUg0MlpSNUtaMVhOV1FEVkFHUlpYRDlXUCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJ4S0RuUHkyUWtDQmtBS1JLTHpzaVJtMnR1NUgwY0JBUyIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.ImQ6gM-mRzkImapjLrVswodXlLfzEbDUxFtyZjXjrgrOAJgBKQsyvcR02dzwb2Hrnz-AoElPa3Wgpfx8aY7drQ';
+const token = localStorage.getItem("token");
 
 const channels = reactive([])
 
@@ -30,7 +33,10 @@ const fetchData = async () => {
                         channels.push(channel)
                     });
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    console.log(err);
+                    router.push({ name: 'login' });
+                });
 }
 
 onMounted(() => {
@@ -51,7 +57,8 @@ onMounted(() => {
 
     <div class="list-channel">
         <ChannelItem v-for="{ channel_id, channel_name, channel_type, last_message, count_message_unread, avatar, group_images } in channels" :channel-id="channel_id" 
-        :channel-name="channel_name" :channel-type="channel_type" :last-message="last_message" :count-message-unread="count_message_unread" :avatar="avatar" :group-images="group_images"/>
+        :channel-name="channel_name" :channel-type="channel_type" :last-message="last_message" :count-message-unread="count_message_unread" :avatar="avatar" :group-images="group_images"
+        @click="console.log('URL now: ' + channel_id)"/>
     </div>
 </div>
 

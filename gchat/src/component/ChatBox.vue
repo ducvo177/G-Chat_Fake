@@ -3,9 +3,9 @@ import { EllipsisOutlined} from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
 import ChatSideBar from './ChatSideBar.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { defineProps } from 'vue'
-import { useRoute } from 'vue-router';
+import { routerKey, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
 const props = defineProps({
@@ -18,13 +18,14 @@ const props = defineProps({
 
 
 const route = useRoute()
+const router = useRouter()
 const channelId = ref(route.params.channel_id);
-const currentUserId = 6623281009872109949;
+const currentUserId = ref(localStorage.getItem("user_id"));
 const listMessage = ref([]);
-const access_token = ref('eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDMwMzI2LCJqdGkiOiIwMUg2QVFQQ1BHQlczMVdWQlhIUEpOWjVQSiIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.6YB9XPgNRvAuZfFkhPkBZ1u1jgUyRjsUhR4PpPFrzAIAeOpkiIA6hk_o9u3lMcoQYXaYbvk9l7X_8Qa1ilo5hQ');
+const access_token = ref(localStorage.getItem("token"));
 const chatboxRef = ref()
 const showMenu = ref(false);
-const  channel =ref([]);
+const channel = ref([]);
 
 
 // Hàm để gọi API và lưu kết quả vào listMessage
@@ -47,6 +48,7 @@ async function fetchInfo() {
     
   } catch (error) {
     console.error('Error fetching data:', error);
+    router.push({ name: 'login' });
   }
 }
 
@@ -68,6 +70,14 @@ onMounted(() => {
     console.log( listMessage.value, channel.value);
 })
 
+watch(() => route.params.channel_id, newId => {
+    channelId.value = newId;
+    fetchData();
+    scrollToBottom();
+    fetchInfo();
+});
+
+
 </script>
 
 <template>
@@ -75,7 +85,7 @@ onMounted(() => {
     <!-- Chatbox header  -->
     <div class="chatbox-header">
         <h1 class="chatbox-title">
-            GHTK IAM
+            {{ channel.channel_name }}
         </h1>
         <div class="ellipsis" @click="toggleMenu" style="cursor:pointer;">
             <EllipsisOutlined />            

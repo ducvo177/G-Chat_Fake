@@ -3,19 +3,47 @@ import { ref } from 'vue'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import { notification } from 'ant-design-vue'
-const email = ref('')
-const password = ref('')
+import axios from 'axios';
+import Summary from 'ant-design-vue/lib/vc-table/Footer/Summary';
+
+const id = ref('')
+const token = ref('')
 const router = useRouter()
-const register = () => {
-  signInWithEmailAndPassword(getAuth(), email.value, password.value)
-    .then((data) => {
+
+const submit = (userId, token) => {
+  localStorage.setItem('user_id', userId.value);
+  localStorage.setItem('token', token.value);
+}
+
+const baseURL = 'https://chat.ghtk.vn/api/v3/channels';
+const tag_id = '';
+const group_id = 1;
+const is_favorite = 0;
+const limit = 40;
+const after = '';
+
+const firstChannelId = ref('');
+
+const login = () => {
+  submit(id, token);
+  axios.get(baseURL, { params: {
+                        tag_id: tag_id,
+                        group_id: group_id,
+                        is_favorite: is_favorite,
+                        limit: limit,
+                        after: after,
+                        token: localStorage.getItem("token"),
+                        access_token: localStorage.getItem("token")
+                    }})
+    .then((res) => {
+      firstChannelId.value = res.data.data[0].channel_id;
       notification['success']({
         message: 'Bạn đã đăng nhập thành công',
         duration: 2,
         description:
           'Bạn đã đăng nhập thành công'
       })
-      router.push({ name: 'chat', params: { channel_id: 4333222501709897463} });
+      router.push({ name: 'chat', params: { channel_id: firstChannelId.value} });
 
     })
     .catch((error) => {
@@ -24,6 +52,7 @@ const register = () => {
         duration: 2,
         description: error.message
       })
+      console.log(error)
     })
 }
 </script>
@@ -41,14 +70,14 @@ const register = () => {
           </div>
           <span>
             <fieldset class="form-group">
-              <input type="text" placeholder="Email" v-model="email" class="form-control"/>
+              <input type="text" placeholder="Id" v-model="id" class="form-control"/>
             </fieldset>
             <fieldset class="form-group">
-              <input type="password" placeholder="Password" v-model="password" class="form-control"/>
+              <input type="password" placeholder="token" v-model="token" class="form-control"/>
             </fieldset>
           </span>
           <div class="button-wrapper">
-            <button @click="register" class="btn btn-success btn-block">Đăng Nhập</button>
+            <button @click="login" class="btn btn-success btn-block">Đăng Nhập</button>
           </div>
           <div class="link-wrapper">
             <router-link to="/register">Đăng ký</router-link>
