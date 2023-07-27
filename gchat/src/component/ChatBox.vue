@@ -1,13 +1,13 @@
 <script setup>
-import { EllipsisOutlined } from '@ant-design/icons-vue'
-import GuestChat from './GuestChat.vue'
-import UserChat from './UserChat.vue'
-import ChatSideBar from './ChatSideBar.vue'
-import { ref, onMounted } from 'vue'
+import { EllipsisOutlined} from '@ant-design/icons-vue';
+import GuestChat from './GuestChat.vue';
+import UserChat from './UserChat.vue';
+import ChatSideBar from './ChatSideBar.vue';
+import { ref, onMounted, watch } from 'vue';
 import { defineProps } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios'
-import { watch } from 'vue'
+import { routerKey, useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+
 const props = defineProps({
   channel_id: {
     type: String,
@@ -17,15 +17,14 @@ const props = defineProps({
 
 const route = useRoute()
 
-const currentUserId = 6623281009872109949
-const listMessage = ref([])
-const access_token = ref(
-  'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDUzMzk2LCJqdGkiOiIwMUg2QkRQRFA0UTM0WkUxUUFSMlM2TjA2UCIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.SJkoIPdS9aq_szH1U2340BS-fyi2GD_6KfX4fKF1GKhsslgg1yvLjdI7fZTL3TSU-mVYzd9_kId9bRUaZ4P7vA'
-)
+const router = useRouter()
+const channelId = ref(route.params.channel_id);
+const currentUserId = ref(localStorage.getItem("user_id"));
+const listMessage = ref([]);
+const access_token = ref(localStorage.getItem("token"));
 const chatboxRef = ref()
-const showMenu = ref(false)
-const channel = ref([])
-const channelId = ref()
+const showMenu = ref(false);
+const channel = ref([]);
 
 watch(route, (to, from) => {
   channelId.value = to.fullPath.split('/').pop()
@@ -50,7 +49,8 @@ async function fetchInfo() {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
   } catch (error) {
-    console.error('Error fetching data:', error)
+    console.error('Error fetching data:', error);
+    router.push({ name: 'login' });
   }
 }
 
@@ -70,16 +70,27 @@ onMounted(() => {
   scrollToBottom()
   fetchInfo()
 })
+
+watch(() => route.params.channel_id, newId => {
+    channelId.value = newId;
+    fetchData();
+    scrollToBottom();
+    fetchInfo();
+});
+
 </script>
 
 <template>
   <div :class="{ 'chatbox-container': true, show: showMenu }" ref="chatboxRef">
     <!-- Chatbox header  -->
     <div class="chatbox-header">
-      <h1 class="chatbox-title">GHTK IAM</h1>
-      <div class="ellipsis" @click="toggleMenu" style="cursor: pointer">
-        <EllipsisOutlined />
-      </div>
+        <h1 class="chatbox-title">
+            {{ channel.channel_name }}
+        </h1>
+        <div class="ellipsis" @click="toggleMenu" style="cursor:pointer;">
+            <EllipsisOutlined />            
+        </div>
+       
     </div>
     <!-- Chatbox content -->
     <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }">
