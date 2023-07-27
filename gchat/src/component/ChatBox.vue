@@ -2,6 +2,7 @@
 import { EllipsisOutlined} from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
+import ChatSideBar from './ChatSideBar.vue';
 import { ref, onMounted } from 'vue';
 import { defineProps } from 'vue'
 import { useRoute } from 'vue-router';
@@ -20,8 +21,10 @@ const route = useRoute()
 const channelId = ref(route.params.channel_id);
 const currentUserId = 6623281009872109949;
 const listMessage = ref([]);
-const access_token = ref('eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwMzg2MzE0LCJqdGkiOiIwMUg2OURROFI4RzlTNDRUREFFS1FGVDgwMiIsImlhdCI6MTY5MDM2NDEyMCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJlZG5NTTdKc2d6UUhEVjBHMmpxTzBpdVpPVk9rNFNqeSIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.SPJ3-jInfZBaZbTbe1EH7seE2s1lUwsbA_UCWb0t3vCOZ2ajtbxyOJ2IrLbY5I7L0pkIi28kSNgsGg8TMlDxWQ');
+const access_token = ref('eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDMwMzI2LCJqdGkiOiIwMUg2QVFQQ1BHQlczMVdWQlhIUEpOWjVQSiIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.6YB9XPgNRvAuZfFkhPkBZ1u1jgUyRjsUhR4PpPFrzAIAeOpkiIA6hk_o9u3lMcoQYXaYbvk9l7X_8Qa1ilo5hQ');
 const chatboxRef = ref()
+const showMenu = ref(false);
+const  channel =ref([]);
 
 
 // Hàm để gọi API và lưu kết quả vào listMessage
@@ -35,33 +38,52 @@ async function fetchData() {
     console.error('Error fetching data:', error);
   }
 }
+
+async function fetchInfo() {
+  const apiUrl = `https://chat.ghtk.vn/api/v3/channels/info?channel_id=${channelId.value}&access_token=${access_token.value}`;
+  try {
+    const response = await axios.get(apiUrl);
+    channel.value = response.data.data;
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+
  const scrollToBottom = ()=> {
       // Hàm để cuộn xuống đáy của div
       const chatbox = chatboxRef.value;
       chatbox.scrollTop = chatbox.scrollHeight;
-    }
+}
+
+const toggleMenu = () =>{
+      showMenu.value = !showMenu.value; // Đảo ngược trạng thái của menu
+};
 
 onMounted(() => {
     fetchData();
     scrollToBottom();
-   
+    fetchInfo();
+    console.log( listMessage.value, channel.value);
 })
 
 </script>
 
 <template>
-<div class="chatbox-container" ref="chatboxRef" >
+    <div :class="{'chatbox-container':true, 'show': showMenu }" ref="chatboxRef" >
     <!-- Chatbox header  -->
     <div class="chatbox-header">
         <h1 class="chatbox-title">
             GHTK IAM
         </h1>
-        <div class="ellipsis">
+        <div class="ellipsis" @click="toggleMenu" style="cursor:pointer;">
             <EllipsisOutlined />            
         </div>
+        
     </div>
     <!-- Chatbox content -->
-        <div v-for="message in listMessage" class="chatbox-content"  >
+        <div v-for="message in listMessage" :class="{ 'chatbox-content': true, 'show': showMenu }"  >
             <GuestChat v-if="message.sender.id != currentUserId" :message="message"></GuestChat>
             <UserChat v-else :message="message"></UserChat>
         </div>
@@ -81,5 +103,9 @@ onMounted(() => {
       
     </div>
 </div>
+<div :class="{ 'menu': true, 'show': showMenu }">
+<ChatSideBar v-if="channel" :channel="channel"></ChatSideBar>
+</div>
+
 </template>
 
