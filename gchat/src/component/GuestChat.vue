@@ -7,15 +7,24 @@ const props = defineProps({
   message: {
     type: Object,
     default: ''
+  },
+  channel: {
+        type: Object,
   }
 })
+console.log(props.message)
 const formatLongText = (text) => {
 
   // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
   text = text.replace(/<@all>/g, '<span class="extract-text__mention"> @ Tất cả</span>');
 
   // Thay thế các từ có định dạng @abc thành <span class="extract-text__mention">abc</span>
-  text = text.replace(/@(\w+)/g, '<span class="extract-text__mention">$1</span>');
+  text = text.replace(/<@(\d+)>/g, (match, id) => {
+    const idToFind = id;
+    console.log(idToFind);
+    const foundElement = props.channel.group_images.find(item => item.id === idToFind);
+    return foundElement ? '<span class="extract-text__mention">@'+foundElement.fullname+'</span>': match;
+  });
 
   // Thay thế các đoạn văn bản trong dấu **[ ]** thành <strong>[nội dung in đậm]</strong>
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -51,7 +60,7 @@ const formatLongText = (text) => {
 <template>
   <div class="guest_chat">
     <MessageTime></MessageTime>
-    <div class="guest_chat-container" v-if="props.message.msg_type == 'add_member'||props.message.msg_type == 'remove_member'">
+    <div class="guest_chat-container" v-if="props.message.msg_type != 'text'&& props.message.msg_type != 'quote_message'">
         <span class="change_member">{{props.message.text}}</span>
     </div>
     <div class="guest_chat-container" v-else>
@@ -70,7 +79,7 @@ const formatLongText = (text) => {
            
         </div>
         <div v-else>
-          <div v-if="props.message.msg_type == 'text'" class="guest_chat-text" v-html="formatLongText(props.message.text)">
+          <div v-if="props.message.msg_type == 'text'||props.message.msg_type == 'quote_message'" class="guest_chat-text" v-html="formatLongText(props.message.text)">
           </div>
           <div v-if="props.message.msg_type == 'sticker'" class="guest_chat-text">
             {{ props.message.text }}

@@ -7,6 +7,7 @@ const props = defineProps({
         default: '',
     }
 })
+console.log(props.message);
 </script>
 
 <template>

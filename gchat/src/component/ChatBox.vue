@@ -20,7 +20,7 @@ const route = useRoute()
 const currentUserId = 6623281009872109949
 const listMessage = ref([])
 const access_token = ref(
-  'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDQ5NzU1LCJqdGkiOiIwMUg2QkE3QTYwOVlRTUFHR01ZWVlFMzhSRyIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.UvBHipeG8AaohJRZYsqAJ-PQxf2KqCDJYbBqtNz0qolM-bXLrRLdblF-kT-M25tzihRJQEs1caFQux44go5Smw'
+  'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDUzMzk2LCJqdGkiOiIwMUg2QkRQRFA0UTM0WkUxUUFSMlM2TjA2UCIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.SJkoIPdS9aq_szH1U2340BS-fyi2GD_6KfX4fKF1GKhsslgg1yvLjdI7fZTL3TSU-mVYzd9_kId9bRUaZ4P7vA'
 )
 const chatboxRef = ref()
 const showMenu = ref(false)
@@ -82,8 +82,8 @@ onMounted(() => {
     </div>
     <!-- Chatbox content -->
     <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }">
-      <GuestChat v-if="message.sender.id != currentUserId" :message="message"></GuestChat>
-      <UserChat v-else :message="message"></UserChat>
+      <GuestChat v-if="message.sender.id != currentUserId && channel" :message="message" :channel="channel"></GuestChat>
+      <UserChat v-else :message="message" :channel="channel"></UserChat>
     </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">
