@@ -10,7 +10,7 @@ const group_id = 1;
 const is_favorite = 0;
 const limit = 40;
 const after = '';
-const token = 'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwMzkzMDc2LCJqdGkiOiIwMUg2OU01TTVLV1FLS0gwM0JFMkc5MjZFSiIsImlhdCI6MTY5MDM2NTYxOSwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUg0MlpSNUtaMVhOV1FEVkFHUlpYRDlXUCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJ4S0RuUHkyUWtDQmtBS1JLTHpzaVJtMnR1NUgwY0JBUyIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.ImQ6gM-mRzkImapjLrVswodXlLfzEbDUxFtyZjXjrgrOAJgBKQsyvcR02dzwb2Hrnz-AoElPa3Wgpfx8aY7drQ';
+const token = 'eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGXzE2MDE4ODAzMDMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoIiwiZXhwIjoxNjkwNDQ5NzU1LCJqdGkiOiIwMUg2QkE3QTYwOVlRTUFHR01ZWVlFMzhSRyIsImlhdCI6MTY5MDQzMDAyNiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmdpYW9oYW5ndGlldGtpZW0udm4iLCJzdWIiOiIwMUczWE1aUzU4RDEwM01DRDdZWlhKTkFHSCIsInNjcCI6WyJvZmZsaW5lX2FjY2VzcyIsIm9wZW5pZCJdLCJzaWQiOiJSdjN6aGEwNFV6eXlJVEEwWGxzMTYxVU5zZExNQTUzYiIsImNsaWVudF9pZCI6IjAxRUtWUjM5WktERzVTWjNGU1JGQTE4QUVGIiwidHlwZSI6Im9hdXRoIn0.UvBHipeG8AaohJRZYsqAJ-PQxf2KqCDJYbBqtNz0qolM-bXLrRLdblF-kT-M25tzihRJQEs1caFQux44go5Smw';
 
 const channels = reactive([])
 
@@ -25,7 +25,6 @@ const fetchData = async () => {
                         access_token: token
                     }})
                 .then(res => {
-                    console.log(res.data.message);
                     res.data.data.forEach((channel) => {
                         channels.push(channel)
                     });

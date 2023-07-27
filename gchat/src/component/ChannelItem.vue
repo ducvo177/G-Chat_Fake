@@ -12,6 +12,10 @@ const props = defineProps({
     avatar: String,
     groupImages: Object
 })
+const router = useRouter()
+const changeChannel = () => {
+    router.push({ name: 'chat', params: { channel_id: props.channelId} });
+}
 
 const displayTime = (timestamp) => {
     const now = new Date();
@@ -22,11 +26,8 @@ const displayTime = (timestamp) => {
 </script>
 
 <template>
-    <div>
-        <router-link class="channel-item"
-            :to="'/chat/' + channelId"
-            :key="$route.fullPath"
-        >
+    <div class="channel-item" @click="changeChannel">
+      
         <div class="channel-avatar">
             <div class="avatar-wrapper">
                 <div v-if="avatar" class="ant-avatar ant-avatar-circle ant-avatar-image avatar-channel" style="width: 48px; height: 48px; line-height: 48px; font-size: 19.2px;">
@@ -75,6 +76,5 @@ const displayTime = (timestamp) => {
                 </div>
             </div>
         </div>
-        </router-link>
     </div>
 </template>

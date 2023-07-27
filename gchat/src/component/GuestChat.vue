@@ -9,12 +9,52 @@ const props = defineProps({
     default: ''
   }
 })
+const formatLongText = (text) => {
 
+  // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
+  text = text.replace(/<@all>/g, '<span class="extract-text__mention"> @ Tất cả</span>');
+
+  // Thay thế các từ có định dạng @abc thành <span class="extract-text__mention">abc</span>
+  text = text.replace(/@(\w+)/g, '<span class="extract-text__mention">$1</span>');
+
+  // Thay thế các đoạn văn bản trong dấu **[ ]** thành <strong>[nội dung in đậm]</strong>
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Tiếp tục xử lý bẻ dòng như trước
+  const maxLineLength = 190;
+  const words = text.replace(/\n/g, '<br>').split(' ');
+  let currentLine = '';
+  let result = '';
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const potentialLine = currentLine + (currentLine ? ' ' : '') + word;
+
+    if (potentialLine.length <= maxLineLength) {
+      // Nếu độ dài của dòng hiện tại vẫn chưa vượt quá giới hạn
+      currentLine = potentialLine;
+    } else {
+      // Nếu độ dài của dòng hiện tại vượt quá giới hạn
+      result += (result ? '<br>' : '') + currentLine;
+      currentLine = word;
+    }
+  }
+
+  // Thêm dòng cuối cùng (nếu cần)
+  if (currentLine) {
+    result += (result ? '<br>' : '') + currentLine;
+  }
+
+  return result;
+};
 </script>
 <template>
   <div class="guest_chat">
     <MessageTime></MessageTime>
-    <div class="guest_chat-container">
+    <div class="guest_chat-container" v-if="props.message.msg_type == 'add_member'||props.message.msg_type == 'remove_member'">
+        <span class="change_member">{{props.message.text}}</span>
+    </div>
+    <div class="guest_chat-container" v-else>
       <div class="guest_chat-img">
         <Avatar size="{64}" :src="props.message.sender.avatar" />
       </div>
@@ -30,8 +70,7 @@ const props = defineProps({
            
         </div>
         <div v-else>
-          <div v-if="props.message.msg_type == 'text'" class="guest_chat-text">
-            {{ props.message.text }}
+          <div v-if="props.message.msg_type == 'text'" class="guest_chat-text" v-html="formatLongText(props.message.text)">
           </div>
           <div v-if="props.message.msg_type == 'sticker'" class="guest_chat-text">
             {{ props.message.text }}
