@@ -30,6 +30,7 @@ const channelId = ref()
 watch(route, (to, from) => {
   channelId.value = to.fullPath.split('/').pop()
   fetchData()
+  fetchInfo()
 })
 
 // Hàm để gọi API và lưu kết quả vào listMessage

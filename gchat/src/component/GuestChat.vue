@@ -12,7 +12,6 @@ const props = defineProps({
         type: Object,
   }
 })
-console.log(props.message)
 const formatLongText = (text) => {
 
   // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
@@ -22,7 +21,7 @@ const formatLongText = (text) => {
   text = text.replace(/<@(\d+)>/g, (match, id) => {
     const idToFind = id;
     console.log(idToFind);
-    const foundElement = props.channel.group_images.find(item => item.id === idToFind);
+    const foundElement = props.channel.group_images?.find(item => item.id === idToFind);
     return foundElement ? '<span class="extract-text__mention">@'+foundElement.fullname+'</span>': match;
   });
 
@@ -58,9 +57,23 @@ const formatLongText = (text) => {
 };
 </script>
 <template>
-  <div class="guest_chat">
-    <MessageTime></MessageTime>
-    <div class="guest_chat-container" v-if="props.message.msg_type != 'text'&& props.message.msg_type != 'quote_message'">
+  <div class="guest_chat" v-if="props.message.status == -1">
+    <div class="guest_chat-container deleted-chat"  >
+      <div class="guest_chat-img">
+        <Avatar size="{64}" :src="props.message.sender.avatar" />
+      </div>
+      <div class="guest_chat-content ">
+        <h1 class="guest_chat-name">
+          {{ props.message.sender.fullname }}
+        </h1>
+          <div v-if="props.message.msg_type == 'text'||props.message.msg_type == 'quote_message'" class="guest_chat-text deleted-chat" v-html="formatLongText(props.message.text)">
+      </div>
+   </div>
+   </div>
+   </div>
+
+   <div class="guest_chat" v-else>
+ <div class="guest_chat-container" v-if="props.message.msg_type != 'text'&& props.message.msg_type != 'quote_message'">
         <span class="change_member">{{props.message.text}}</span>
     </div>
     <div class="guest_chat-container" v-else>
@@ -97,4 +110,5 @@ const formatLongText = (text) => {
       </div>
     </div>
   </div>
+   
 </template>
