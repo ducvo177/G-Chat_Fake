@@ -257,6 +257,41 @@ body {
   align-items: center;
   width: 32px;
 }
+.chatbox-content.show{
+  width: 75%;
+}
+.menu {
+  position: fixed;
+  top: 0;
+  right: -19vw; /* Đặt menu ẩn bên phải màn hình */
+  width: 19vw; /* Đặt độ rộng menu */
+  height: 100vh; /* Đặt chiều cao menu bằng chiều cao màn hình */
+  background-color: #f0f0f0;
+  z-index: 888;
+   /* Áp dụng hiệu ứng chuyển động khi xuất hiện/ẩn menu */
+}
+.chatbox-container.show >.chatbox-header{
+  width: 58%;
+}
+.chatbox-container.show >.chatbox-footer{
+  width: 58%;
+}
+.chatbox-container.show >.chatbox-footer>.chatbox-footer_content>.chatbox-footer-input{
+  width: 95%;
+}
+.chatbox-container.show >.chatbox-footer>.chatbox-footer_content>.chatbox-footer-attachment{
+  right: 10%;
+}
+
+.chatbox-container.show>.chatbox-header >.ellipsis{
+  margin-right: 5%;
+}
+.menu.show {
+  right: 0;
+}
+.image_attachment{
+  margin-bottom: 100px;
+}
 .chatbox-title{
   margin-left: 20px;
   width: 95%;

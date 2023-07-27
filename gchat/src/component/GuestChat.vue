@@ -1,17 +1,19 @@
 <script setup>
 import { Avatar, message } from 'ant-design-vue'
 import { defineProps } from 'vue'
+import MessageTime from './MessageTime.vue';
+
 const props = defineProps({
   message: {
     type: Object,
     default: ''
   }
 })
-console.log(props.message)
+
 </script>
 <template>
   <div class="guest_chat">
-    <p class="guest_chat-time">Hôm nay,14:02</p>
+    <MessageTime></MessageTime>
     <div class="guest_chat-container">
       <div class="guest_chat-img">
         <Avatar size="{64}" :src="props.message.sender.avatar" />
