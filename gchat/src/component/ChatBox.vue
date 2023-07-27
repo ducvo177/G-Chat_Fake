@@ -95,7 +95,7 @@ watch(() => route.params.channel_id, newId => {
     <!-- Chatbox content -->
     <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }">
       <GuestChat v-if="message.sender.id != currentUserId && channel" :message="message" :channel="channel"></GuestChat>
-      <UserChat v-else :message="message" :channel="channel"></UserChat>
+      <UserChat v-if="message.sender.id == currentUserId && channel" :message="message" :channel="channel"></UserChat>
     </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">

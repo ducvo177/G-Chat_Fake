@@ -331,6 +331,12 @@ body {
   color: #a5a5a5;
   font-weight: 400;
 }
+.extract-text__mention.user{
+  color: #fff!important;
+}
+.user_chat.attachment{
+  height: 300px;
+}
 .guest_chat-container.deleted-chat{
   border: 0;
   padding:0;
