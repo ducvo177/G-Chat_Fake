@@ -12,7 +12,11 @@ console.log(props.message);
 
 <template>
     <div class="user_chat">
-        <div class="user_chat-content">
+        <div class="user_chat-content deleted-chat" v-if="props.message.status == -1" >
+            {{ props.message.text }}
+        </div>
+
+        <div class="user_chat-content" v-else>
             <div v-if="props.message.attachments" >
                 <div v-for="attachment in props.message.attachments">
                     <img class="image_attachment" :src="attachment.url" alt="User Attachment" />  

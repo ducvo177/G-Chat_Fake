@@ -28,7 +28,6 @@ const fetchData = async () => {
                         access_token: token
                     }})
                 .then(res => {
-                    console.log(res.data.message);
                     res.data.data.forEach((channel) => {
                         channels.push(channel)
                     });
