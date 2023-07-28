@@ -25,12 +25,33 @@ const access_token = ref(localStorage.getItem("token"));
 const chatboxRef = ref()
 const showMenu = ref(false);
 const channel = ref([]);
-
+const channelMember = ref([])
 watch(route, (to, from) => {
   channelId.value = to.fullPath.split('/').pop()
   fetchData()
   fetchInfo()
 })
+
+async function fetchProfile() {
+  const apiUrl = `https://chat.ghtk.vn/api/v31/users?user_id=${currentUserId.value}&limit=40&access_token=${access_token.value}`
+  try {
+    const response = await axios.get(apiUrl)
+    channelMember.value.push({id: response.data.data[0].id, fullname:response.data.data[0].fullname});
+    console.log("profile: " + response.data.data.fullname)
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+}
+
+async function fetchGroup() {
+  const apiUrl = `https://chat.ghtk.vn/api/v3/channel/members?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
+  try {
+    const response = await axios.get(apiUrl)
+    response.data.data.forEach((data) => channelMember.value.push(data));
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+}
 
 // Hàm để gọi API và lưu kết quả vào listMessage
 async function fetchData() {
@@ -48,6 +69,7 @@ async function fetchInfo() {
   try {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
+    console.log(channel.value)
   } catch (error) {
     console.error('Error fetching data:', error);
     router.push({ name: 'login' });
@@ -66,16 +88,20 @@ const toggleMenu = () => {
 
 onMounted(() => {
   channelId.value = route.params.channel_id
-  fetchData()
+  fetchProfile()
   scrollToBottom()
   fetchInfo()
+  fetchGroup()
+  fetchData()
 })
 
 watch(() => route.params.channel_id, newId => {
     channelId.value = newId;
-    fetchData();
+    fetchProfile();
     scrollToBottom();
     fetchInfo();
+    fetchGroup();
+    fetchData();
 });
 
 </script>
@@ -94,8 +120,8 @@ watch(() => route.params.channel_id, newId => {
     </div>
     <!-- Chatbox content -->
     <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }">
-      <GuestChat v-if="message.sender.id != currentUserId && channel" :message="message" :channel="channel"></GuestChat>
-      <UserChat v-if="message.sender.id == currentUserId && channel" :message="message" :channel="channel"></UserChat>
+      <GuestChat v-if="message.sender.id != currentUserId && channelMember" :message="message" :channelMember="channelMember"></GuestChat>
+      <UserChat v-if="message.sender.id == currentUserId && channelMember" :message="message" :channelMember="channelMember"></UserChat>
     </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">

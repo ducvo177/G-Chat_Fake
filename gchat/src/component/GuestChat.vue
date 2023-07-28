@@ -8,10 +8,11 @@ const props = defineProps({
     type: Object,
     default: ''
   },
-  channel: {
+  channelMember: {
         type: Object,
   }
 })
+
 const formatLongText = (text) => {
 
   // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
@@ -20,8 +21,7 @@ const formatLongText = (text) => {
   // Thay thế các từ có định dạng @abc thành <span class="extract-text__mention">abc</span>
   text = text.replace(/<@(\d+)>/g, (match, id) => {
     const idToFind = id;
-    console.log(idToFind);
-    const foundElement = props.channel.group_images?.find(item => item.id === idToFind);
+    const foundElement = props.channelMember?.find(item => item.id === idToFind);
     return foundElement ? '<span class="extract-text__mention">@'+foundElement.fullname+'</span>': match;
   });
 
