@@ -25,6 +25,8 @@ const access_token = ref(localStorage.getItem("token"));
 const chatboxRef = ref()
 const showMenu = ref(false);
 const channel = ref([]);
+const messageInputRef = ref("");
+const selectFiles = ref([]);
 const channelMember = ref([])
 watch(route, (to, from) => {
   channelId.value = to.fullPath.split('/').pop()
@@ -76,6 +78,30 @@ async function fetchInfo() {
   }
 }
 
+async function sendMessage(messageInput, selecteFiles) {
+      let formData = new FormData();
+        selecteFiles.forEach(file => {
+        formData.append('attachment', file);
+      });
+   
+
+      formData.append('channel_id', channelId.value);
+      formData.append('msg_type', "text");
+      formData.append('ref_id', "1Pq2InaSrMP696rGQza5");
+      formData.append('text', messageInput);
+
+      await axios.post('https://chat.ghtk.vn/api/v3/messages', formData, {
+        headers: {
+          Authorization: `Bearer ${access_token.value}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      messageInputRef.value.value = '';
+      selectFiles.value = [];
+      loadData();
+      // this.fetchNewMessage();
+};
+
 const scrollToBottom = () => {
   // Hàm để cuộn xuống đáy của div
   const chatbox = chatboxRef.value
@@ -85,23 +111,39 @@ const scrollToBottom = () => {
 const toggleMenu = () => {
   showMenu.value = !showMenu.value // Đảo ngược trạng thái của menu
 }
-
-onMounted(() => {
-  channelId.value = route.params.channel_id
+const loadData= () =>{
   fetchProfile()
   scrollToBottom()
   fetchInfo()
   fetchGroup()
   fetchData()
+}
+
+onMounted(() => {
+  const messageInputz = document.querySelector('.chatbox-footer-input');
+const sendmessageButton = document.querySelector('.sendmessage-button');
+const selecteFilesIcon = document.querySelector('.chatbox-footer-image');
+
+messageInputz.addEventListener('focus', function() {
+    sendmessageButton.style.display = 'block';
+    selecteFilesIcon.style.display = 'none'
+    
+});
+
+messageInputz.addEventListener('blur', function() {
+    if (!messageInputz.value.trim()) {
+        sendmessageButton.style.display = 'none';
+        selecteFilesIcon.style.display = 'block'
+    }
+});
+
+  channelId.value = route.params.channel_id
+  loadData();
 })
 
 watch(() => route.params.channel_id, newId => {
     channelId.value = newId;
-    fetchProfile();
-    scrollToBottom();
-    fetchInfo();
-    fetchGroup();
-    fetchData();
+    loadData()
 });
 
 </script>
@@ -126,7 +168,7 @@ watch(() => route.params.channel_id, newId => {
     <!-- Chatbox footer -->
     <div class="chatbox-footer">
       <div class="chatbox-footer_content">
-        <input type="text" class="chatbox-footer-input" placeholder="Nhập tin nhắn" />
+        <input type="text" class="chatbox-footer-input" placeholder="Nhập tin nhắn" ref="messageInputRef" />
         <div class="chatbox-footer-attachment">
           <svg
             width="28"
@@ -188,7 +230,12 @@ watch(() => route.params.channel_id, newId => {
               fill="#00904A"
             ></path>
           </svg>
+          
         </div>
+        <div>
+          <button @click="sendMessage(messageInputRef.value,selectFiles)" class="sendmessage-button" style="border:none; background-color:#fff; margin-left:8px; margin-top:4px;" ><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="14" fill="#00904A"></rect><g clip-path="url(#clip0_9236_112452)"><path d="M13.0721 20.5416C13.0721 20.7957 13.1737 21.0395 13.3546 21.2192C13.5355 21.3989 13.7809 21.4999 14.0367 21.4999C14.2907 21.4913 14.5329 21.3914 14.7182 21.2187C14.8064 21.1293 14.8759 21.0234 14.9227 20.9072C14.9695 20.791 14.9926 20.6667 14.9908 20.5416V9.76033L15.536 10.2916L18.8808 13.6145C19.0574 13.7772 19.29 13.8666 19.5309 13.8645C19.6557 13.8659 19.7795 13.8426 19.8952 13.7961C20.0109 13.7496 20.1162 13.6808 20.2049 13.5936C20.2936 13.5064 20.3641 13.4026 20.4122 13.2882C20.4602 13.1738 20.485 13.051 20.485 12.927C20.4926 12.6805 20.4022 12.441 20.2333 12.2603L14.7077 6.78116C14.6191 6.69266 14.5137 6.62243 14.3976 6.57451C14.2816 6.52659 14.1571 6.50192 14.0314 6.50192C13.9058 6.50192 13.7813 6.52659 13.6653 6.57451C13.5492 6.62243 13.4438 6.69266 13.3552 6.78116L7.82954 12.2707C7.73135 12.3576 7.65274 12.4641 7.59887 12.5832C7.54626 12.7015 7.51775 12.829 7.51499 12.9582C7.51387 13.0869 7.53884 13.2144 7.58838 13.3332C7.63167 13.4528 7.70365 13.5601 7.79809 13.6457C7.88849 13.7373 7.99513 13.8114 8.11264 13.8645C8.23023 13.9069 8.35451 13.9281 8.47961 13.927C8.61352 13.9278 8.74597 13.8994 8.86756 13.8437C8.98507 13.7906 9.09171 13.7164 9.18211 13.6249L12.5373 10.2916L13.0721 9.76033V20.5416Z" fill="white"></path></g><defs><clipPath id="clip0_9236_112452"><rect width="12.97" height="15" fill="white" transform="translate(7.51501 6.5)"></rect></clipPath></defs></svg></button>
+        </div>
+        
       </div>
     </div>
   </div>

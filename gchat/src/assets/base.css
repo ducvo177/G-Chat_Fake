@@ -226,6 +226,21 @@ body {
   width: 25px;
   height: 25px;
 }
+.chatbox-footer-image{
+  display: block; /* Icon attachment được hiển thị mặc định */
+}
+
+.chatbox-footer-input:focus + .chatbox-footer-image {
+  display: none; /* Khi input được focus, icon attachment bị ẩn đi */
+}
+
+.sendmessage-button {
+  display: none; /* Nút sendmessage-button được ẩn đi mặc định */
+}
+
+.chatbox-footer-input:focus + .sendmessage-button {
+  display: block; /* Khi input được focus, nút sendmessage-button hiển thị */
+}
 .notfill-heart{
   display: inline-block;
   background-image: url(https://ghtk.me/images/reactions/quick_reaction.png);
