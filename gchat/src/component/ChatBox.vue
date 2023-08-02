@@ -3,7 +3,8 @@ import { EllipsisOutlined} from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
 import ChatSideBar from './ChatSideBar.vue';
-import { ref, onMounted, watch, onBeforeMount } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
+
 import { defineProps } from 'vue'
 import { routerKey, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -28,18 +29,18 @@ const channel = ref([]);
 const messageInputRef = ref("");
 const selectFiles = ref([]);
 const channelMember = ref([])
-watch(route, (to, from) => {
-  channelId.value = to.fullPath.split('/').pop()
-  fetchData()
-  fetchInfo()
-})
+// watch(route, (to, from) => {
+//   channelId.value = to.fullPath.split('/').pop()
+//   fetchData()
+//   fetchInfo()
+// })
 
 async function fetchProfile() {
   const apiUrl = `https://chat.ghtk.vn/api/v31/users?user_id=${currentUserId.value}&limit=40&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
     channelMember.value.push({id: response.data.data[0].id, fullname:response.data.data[0].fullname});
-
+    console.log("profile: " + response.data.data[0].fullname)
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -61,6 +62,7 @@ async function fetchData() {
   try {
     const response = await axios.get(apiUrl)
     listMessage.value = response.data.data.reverse()
+
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -105,16 +107,20 @@ const scrollToBottom = () => {
   // Hàm để cuộn xuống đáy của div
   const chatbox = chatboxRef.value
   chatbox.scrollTop = chatbox.scrollHeight
+  console.log("scrolled!");
 }
 
 const toggleMenu = () => {
   showMenu.value = !showMenu.value // Đảo ngược trạng thái của menu
 }
-const loadData= () =>{
-  fetchProfile()
-  fetchInfo()
-  fetchGroup()
-  fetchData()
+const loadData = async () =>{
+  await fetchProfile()
+  await fetchInfo()
+  await fetchGroup()
+  await fetchData()
+  nextTick(() => {
+      scrollToBottom()
+  })
 }
 
 onMounted(() => {
@@ -136,11 +142,9 @@ messageInputz.addEventListener('blur', function() {
 });
 
   channelId.value = route.params.channel_id
-  scrollToBottom()
-})
-onBeforeMount(()=> {
   loadData();
-});
+})
+
 watch(() => route.params.channel_id, newId => {
     channelId.value = newId;
     loadData()
