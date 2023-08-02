@@ -90,6 +90,12 @@ body {
   overflow: auto;
   overflow-x: hidden;
 }
+.chatinfor-more{
+  display: flex;
+  line-height: 14px;
+  margin-top: 5px;
+  margin-right: 10px;
+}
 .chatbox-footer_content{
   width: 100%;
   display: flex;

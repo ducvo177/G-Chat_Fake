@@ -3,7 +3,7 @@ import { EllipsisOutlined} from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
 import ChatSideBar from './ChatSideBar.vue';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onBeforeMount } from 'vue';
 import { defineProps } from 'vue'
 import { routerKey, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -39,7 +39,7 @@ async function fetchProfile() {
   try {
     const response = await axios.get(apiUrl)
     channelMember.value.push({id: response.data.data[0].id, fullname:response.data.data[0].fullname});
-    console.log("profile: " + response.data.data.fullname)
+
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -71,7 +71,6 @@ async function fetchInfo() {
   try {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
-    console.log(channel.value)
   } catch (error) {
     console.error('Error fetching data:', error);
     router.push({ name: 'login' });
@@ -113,14 +112,13 @@ const toggleMenu = () => {
 }
 const loadData= () =>{
   fetchProfile()
-  scrollToBottom()
   fetchInfo()
   fetchGroup()
   fetchData()
 }
 
 onMounted(() => {
-  const messageInputz = document.querySelector('.chatbox-footer-input');
+const messageInputz = document.querySelector('.chatbox-footer-input');
 const sendmessageButton = document.querySelector('.sendmessage-button');
 const selecteFilesIcon = document.querySelector('.chatbox-footer-image');
 
@@ -138,9 +136,11 @@ messageInputz.addEventListener('blur', function() {
 });
 
   channelId.value = route.params.channel_id
-  loadData();
+  scrollToBottom()
 })
-
+onBeforeMount(()=> {
+  loadData();
+});
 watch(() => route.params.channel_id, newId => {
     channelId.value = newId;
     loadData()
@@ -240,6 +240,6 @@ watch(() => route.params.channel_id, newId => {
     </div>
   </div>
   <div :class="{ menu: true, show: showMenu }">
-    <ChatSideBar v-if="channel" :channel="channel"></ChatSideBar>
+    <ChatSideBar v-if="channel.channel_id" :channel="channel"> </ChatSideBar>
   </div>
 </template>

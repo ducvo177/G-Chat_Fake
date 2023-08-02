@@ -10,7 +10,7 @@ const props = defineProps({
         type: Object,
   }
 })
-console.log(props.channelMember)
+
 const formatLongText = (text) => {
 
 // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
