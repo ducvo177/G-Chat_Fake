@@ -21,7 +21,7 @@ const displayTime = (timestamp) => {
     const now = new Date();
     const then = new Date(timestamp);
     const timeDiff = now - then;
-    return timeDiff < 86400000 ? then.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : then.toLocaleString('vi-VN', { month: '2-digit', day: '2-digit' }).replace('-', '\/');
+    return now.getDate() == then.getDate() && timeDiff < 86400000 ? then.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : then.toLocaleString('vi-VN', { month: '2-digit', day: '2-digit' }).replace('-', '\/');
 }
 </script>
 
