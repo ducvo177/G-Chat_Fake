@@ -14,7 +14,7 @@ const props = defineProps({
     type: Object
   }
 })
-console.log(props.channel);
+
 
 const notification = ref(props.channel.is_notification == '1'?true : false);
 const handleChange = (value) => {

@@ -90,6 +90,12 @@ body {
   /* overflow: auto; */
   /* overflow-x: hidden; */
 }
+.ant-radio-checked .ant-radio-inner{
+  border-color:#02bc77 !important;
+}
+.ant-radio-inner::after{
+  background-color: #02bc77 !important; 
+}
 .chatinfor-more{
   display: flex;
   line-height: 14px;

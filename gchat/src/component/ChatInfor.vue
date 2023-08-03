@@ -5,6 +5,8 @@ import ChatInforHeader from '../component/ChatInforHeader.vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { defineProps } from 'vue'
+import { LeftOutlined,SearchOutlined} from '@ant-design/icons-vue';
+import { Avatar } from 'ant-design-vue';
 
 const props = defineProps({
     channelMember: {
@@ -21,6 +23,11 @@ let noMoreData = false;
 const isLoading = ref(false);
 const after = ref(null);
 const channels = ref([])
+const isNewChat = ref(true);
+const searchUser = ref('');
+const searchUserList = ref([]);
+const loading = ref(false);
+const selectedUsers = ref([]);
 
 const fetchData = async () => {
     await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}`)
@@ -49,6 +56,59 @@ const fetchMoreData = async () => {
                     router.push({ name: 'login' });
                 });
 }
+
+const clearNewUser = () => {
+ isNewChat.value = false
+searchUser.value = ''
+ searchUserList.value = []
+ selectedUsers.value=[];
+}
+
+const createNewChatGroup = async () => {
+  if(selectedUsers.value.length == 1){
+    clearNewUser();
+  }
+  try {
+    const payload = {
+      channel_mode: 'internal', 
+      channel_type: 'group', 
+      members: selectedUsers.value.join(','),
+    };
+
+    const response = await axios.post(`https://chat.ghtk.vn/api/v3/channels`, payload,{
+        headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('Response:', response.data);
+    clearNewUser();
+  
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+const fetchSuggestUser = async (search = null) => {
+    searchUserList.value=[];
+    loading.value=true;
+    let url = `https://chat.ghtk.vn/api/v3/search?limit=40&type=user&skip=0&group_id=1&access_token=${token}`;
+    if(search){
+        url = `https://chat.ghtk.vn/api/v3/search?limit=40&type=user&skip=0&group_id=1&keyword=${search}&access_token=${token}`;
+    }
+ 
+    await axios.get(url)
+                .then(res => {
+                  searchUserList.value= res.data.data.users
+                  loading.value=false;
+                  console.log(searchUserList.value);
+                })
+                .catch(err => {
+                    console.log(err);
+                    router.push({ name: 'login' });
+                });
+}
+fetchSuggestUser ();
+
 
 function setUpLoadMore() {
     let options = {
@@ -98,8 +158,30 @@ return text;
 };
 
 
+const handleClearSearchUser = () => {
+    searchUser.value='';
+}
 
+const handleSearchUser = () =>{
+    fetchSuggestUser(searchUser.value);
+}
 
+const handleRadioChange = (userId)=> {
+      if (!selectedUsers.value.includes(userId)) {
+        selectedUsers.value.push(userId);
+      } else {
+        selectedUsers.value = selectedUsers.value.filter((id) => id !== userId);
+      }
+      
+};
+
+const isChecked = (userId) => {
+      return selectedUsers.value.includes(userId);
+};
+const handleCreateChat = ()=>{
+    isNewChat.value=true;
+    fetchSuggestUser();
+}
 onMounted(async () => {
         await fetchData();
         setUpLoadMore();
@@ -108,8 +190,8 @@ onMounted(async () => {
 </script>
 
 <template>
-<div class="chatinfor-container">
-    <ChatInforHeader/>
+<div class="chatinfor-container" v-if="!isNewChat">
+    <ChatInforHeader @createchat="handleCreateChat"/>
 
     <div class="input-search-wrapper">
         <input type="text" autocomplete="off" class="input-search" placeholder="Tìm kiếm" id="input_layout_search_all">
@@ -130,15 +212,136 @@ onMounted(async () => {
         </div>
     </div>
 </div>
-
+<div class="chatinfor-container" v-else>
+    <div class="chatinfor-header">
+        <div style="position: absolute; color:#00904a; font-size: 18px; cursor: pointer; padding:10px;" @click="clearNewUser()">
+            <LeftOutlined />
+        </div>
+       
+      <h2 class="chatinfor-title-newchat">
+       Tạo Chat
+      </h2>
+    </div>
+    <div>
+        <a-input
+        v-model:value="searchUser"
+        @pressEnter="handleSearchUser"
+        placeholder="Tìm Kiếm"
+        allow-clear
+        
+      >
+        <template v-slot:clearIcon>
+          <a-icon @click="handleClearSearchUser" type="close-circle" />
+        </template>
+      </a-input>
+    </div>
+    <span class="search-user-suggest">Gợi ý</span>
+    <div class="search-user-container">
+        <div class="search-user-results" >
+            <a-skeleton :loading="loading" :active="true" :avatar="true" :paragraph="2">
+              <div class="search-user-result"></div>
+            </a-skeleton>
+            <a-skeleton :loading="loading" :active="true" :avatar="true" :paragraph="2">
+                <div class="search-user-result"></div>
+              </a-skeleton>
+              <a-skeleton :loading="loading" :active="true" :avatar="true" :paragraph="2">
+                <div class="search-user-result"></div>
+              </a-skeleton>
+              <a-skeleton :loading="loading" :active="true" :avatar="true" :paragraph="2">
+                <div class="search-user-result"></div>
+              </a-skeleton>
+          </div>
+        <div class="search-user-results" v-for="user in searchUserList">
+            <div class="search-user-result">
+                <Avatar :size="50" :src="user.avatar" class="search-user-image" />
+                <div class="search-user-infor">
+                    <h4 class="search-user-name">
+                        {{ user.fullname }}
+                    </h4>
+                    <span>{{user.position_name}}</span>
+                </div>
+                <div class="search-user-radio">
+                    <a-radio
+                      :checked="isChecked(user.id)"
+                      :value="user.id"
+                      :size="large"
+                      @click="handleRadioChange(user.id)"
+                    ></a-radio>
+            </div>
+            </div>
+        </div>
+        <div class="create-channel-button" v-if="selectedUsers.length!=0" @click="createNewChatGroup">Thêm chat mới</div>
+    
+    </div>
+  
+</div>
 </template>
 <style scoped>
+.search-user-container{
+    height: 85vh;
+    align-items: flex-end;
+}
+
+.create-channel-button{
+    cursor: pointer;
+    margin: 10px 8px;
+    font-size: 16px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    height: 32px;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: #00904a;
+    color: #fff;
+}
 .chatinfor-container{
     width: 23vw;
     background-color: white;
     height: 100vh;
 }
+.search-user-result{
+    display: flex;
+}
 
+.search-user-suggest{
+    font-weight: 600;
+    padding: 20px 8px 8px;
+    color: #9a9a9a;
+    font-size: 16px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+}
+.search-user-image{
+    margin:10px;
+}
+.search-user-radio{
+    float: right;
+}
+.search-user-radio{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.search-user-infor{
+    width: 70%;
+    padding: 15px 10px;
+}
+.ant-input-affix-wrapper{
+    margin:0 8px;
+    height: 40px;
+    width: 95%;
+    border: 1px solid #7a7a7a;
+    border-radius: 10px;
+}
+.ant-input{
+    margin-left:10px;
+}
 
 .input-search-wrapper {
     position: relative;
@@ -159,6 +362,12 @@ onMounted(async () => {
     font-size: 14px!important;
 }
 
+.chatinfor-title-newchat{
+    text-align: left;
+    padding:12px 0;
+    margin-left: 35px;
+    
+}
 .icon-search {
     position: absolute;
     top: 50%;
