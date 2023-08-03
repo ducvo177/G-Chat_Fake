@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, onUpdated } from 'vue';
 import ChannelItem from '../component/ChannelItem.vue';
 import ChatInforHeader from '../component/ChatInforHeader.vue';
 import axios from 'axios';
@@ -23,7 +23,8 @@ let noMoreData = false;
 const isLoading = ref(false);
 const after = ref(null);
 const channels = ref([])
-const isNewChat = ref(true);
+const isNewChat = ref(false);
+const isBackFromNewChat = ref(false);
 const searchUser = ref('');
 const searchUserList = ref([]);
 const loading = ref(false);
@@ -59,6 +60,7 @@ const fetchMoreData = async () => {
 
 const clearNewUser = () => {
  isNewChat.value = false
+ isBackFromNewChat.value = true
 searchUser.value = ''
  searchUserList.value = []
  selectedUsers.value=[];
@@ -117,7 +119,7 @@ function setUpLoadMore() {
         threshold: 1.0
     }
 
-    console.log()
+    console.log("SetUp Called!");
     let target = document.getElementById(channels.value[channels.value.length - 1].channel_id);
 
     const callback = (entries, observer) => {
@@ -187,10 +189,18 @@ onMounted(async () => {
         setUpLoadMore();
     }
 );
+
+onUpdated(() => {
+    if(!isNewChat.value && isBackFromNewChat.value){
+        console.log("I'm here!");
+        setUpLoadMore();
+        isBackFromNewChat.value = false;
+    }
+})
 </script>
 
 <template>
-<div class="chatinfor-container" v-if="!isNewChat">
+<div class="chatinfor-container" v-if="!isNewChat" >
     <ChatInforHeader @createchat="handleCreateChat"/>
 
     <div class="input-search-wrapper">
