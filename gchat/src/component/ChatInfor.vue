@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive } from 'vue';
+import { onMounted, ref } from 'vue';
 import ChannelItem from '../component/ChannelItem.vue';
 import ChatInforHeader from '../component/ChatInforHeader.vue';
 import axios from 'axios';
@@ -14,35 +14,69 @@ const props = defineProps({
 
 const router = useRouter();
 
-const baseURL = 'https://chat.ghtk.vn/api/v3/channels';
-const tag_id = '';
 const group_id = 1;
-const is_favorite = 0;
-const limit = 40;
-const after = '';
 const token = localStorage.getItem("token");
 
-const channels = reactive([])
+let noMoreData = false;
+const isLoading = ref(false);
+const after = ref(null);
+const channels = ref([])
 
 const fetchData = async () => {
-    await axios.get(baseURL, { params: {
-                        tag_id: tag_id,
-                        group_id: group_id,
-                        is_favorite: is_favorite,
-                        limit: limit,
-                        after: after,
-                        token: token,
-                        access_token: token
-                    }})
+    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}`)
                 .then(res => {
                     res.data.data.forEach((channel) => {
-                        channels.push(channel)
+                        channels.value.push(channel)
                     });
+                    noMoreData = (res.data.data.length < 10);
                 })
                 .catch(err => {
                     console.log(err);
                     router.push({ name: 'login' });
                 });
+}
+
+const fetchMoreData = async () => {
+    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}&after=${after.value}`)
+                .then(res => {
+                    res.data.data.forEach((channel) => {
+                        channels.value.push(channel)
+                    });
+                    noMoreData = (res.data.data.length < 10);
+                })
+                .catch(err => {
+                    console.log(err);
+                    router.push({ name: 'login' });
+                });
+}
+
+function setUpLoadMore() {
+    let options = {
+        root: document.getElementById("channels"),
+        rootMargin: "0px",
+        threshold: 1.0
+    }
+
+    console.log()
+    let target = document.getElementById(channels.value[channels.value.length - 1].channel_id);
+
+    const callback = (entries, observer) => {
+        entries.forEach( async (entry) => {
+            if(entry.isIntersecting && !noMoreData){
+                after.value = channels.value[channels.value.length - 1].score;
+                isLoading.value = true;
+                await fetchMoreData();
+                isLoading.value = false;
+                console.log(isLoading);
+                target = document.getElementById(channels.value[channels.value.length - 1].channel_id);
+                observer.observe(target);
+            }
+        })
+    }
+
+    let observer = new IntersectionObserver(callback, options);
+
+    observer.observe(target);
 }
 
 const formatLongText = (text) => {
@@ -66,8 +100,9 @@ return text;
 
 
 
-onMounted(() => {
-        fetchData();
+onMounted(async () => {
+        await fetchData();
+        setUpLoadMore();
     }
 );
 </script>
@@ -82,10 +117,17 @@ onMounted(() => {
         <span class="btn-filter"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4.3335C8 3.22893 7.1046 2.3335 6 2.3335C4.89543 2.3335 4 3.22893 4 4.3335C4 5.43806 4.89543 6.3335 6 6.3335C7.1046 6.3335 8 5.43806 8 4.3335Z" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11.6665C8 12.7711 8.8954 13.6665 10 13.6665C11.1046 13.6665 12 12.7711 12 11.6665C12 10.5619 11.1046 9.6665 10 9.6665C8.8954 9.6665 8 10.5619 8 11.6665Z" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 4.3335H14.6667" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.00001 11.6665H1.33334" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1.33334 4.3335H4.00001" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.6667 11.6665H12" stroke="#929292" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
     </div>
 
-    <div class="list-channel">
+    <div class="list-channel" id="channels">
         <ChannelItem v-for="{ channel_id, channel_name, channel_type, last_message, count_message_unread, avatar, group_images } in channels" :channel-id="channel_id" 
         :channel-name="channel_name" :channel-type="channel_type" :last-message="last_message" :count-message-unread="count_message_unread" :avatar="avatar" :group-images="group_images"
-        @click="console.log('URL now: ' + channel_id)"/>
+        :id="channel_id"/>
+        <div class="chat-view-loading" v-if="isLoading">
+            <div class="chat-view__loadmore chat-view__loadmore--top">
+                <div class="compBaseSpinnerContainer">
+                    <a-spin/>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

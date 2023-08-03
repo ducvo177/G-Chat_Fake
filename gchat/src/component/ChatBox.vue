@@ -1,5 +1,5 @@
 <script setup>
-import { EllipsisOutlined} from '@ant-design/icons-vue';
+import { EllipsisOutlined } from '@ant-design/icons-vue';
 import GuestChat from './GuestChat.vue';
 import UserChat from './UserChat.vue';
 import ChatSideBar from './ChatSideBar.vue';
@@ -29,11 +29,11 @@ const channel = ref([]);
 const messageInputRef = ref("");
 const selectFiles = ref([]);
 const channelMember = ref([])
-// watch(route, (to, from) => {
-//   channelId.value = to.fullPath.split('/').pop()
-//   fetchData()
-//   fetchInfo()
-// })
+const before = ref(null);
+
+
+let noMoreData = false;
+const isLoading = ref(false);
 
 async function fetchProfile() {
   const apiUrl = `https://chat.ghtk.vn/api/v31/users?user_id=${currentUserId.value}&limit=40&access_token=${access_token.value}`
@@ -60,9 +60,9 @@ async function fetchGroup() {
 async function fetchData() {
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
   try {
-    const response = await axios.get(apiUrl)
+    const response = await axios.get(apiUrl);
     listMessage.value = response.data.data.reverse()
-
+    noMoreData = (response.data.data.length < 40);
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -105,7 +105,7 @@ async function sendMessage(messageInput, selecteFiles) {
 
 const scrollToBottom = () => {
   // Hàm để cuộn xuống đáy của div
-  const chatbox = chatboxRef.value
+  const chatbox = document.getElementById("messages");
   chatbox.scrollTop = chatbox.scrollHeight
   console.log("scrolled!");
 }
@@ -113,11 +113,66 @@ const scrollToBottom = () => {
 const toggleMenu = () => {
   showMenu.value = !showMenu.value // Đảo ngược trạng thái của menu
 }
-const loadData = async () =>{
+
+// Load more messages
+async function fetchMoreData() {
+  const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}&before=${before.value}`
+  try {
+    const response = await axios.get(apiUrl);
+    response.data.data.forEach((data) => listMessage.value.splice(0, 0, data));
+    noMoreData = (response.data.data.length < 40);
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+}
+
+function setUpLoadMore() {
+  let options = {
+    root: document.getElementById("messages"),
+    rootMargin: "0px",
+    threshold: 1.0
+  }
+
+  let target = document.getElementById(listMessage.value[0].id);
+
+
+  const callback = (entries, observer) => {
+    entries.forEach( async (entry) => {
+      if(entry.isIntersecting && !noMoreData){
+        before.value = listMessage.value[0].id;
+        isLoading.value = true;
+        await fetchMoreData();
+        isLoading.value = false;
+        console.log(isLoading);
+        target = document.getElementById(listMessage.value[0].id);
+        observer.observe(target);
+        console.log("Called! Now scroll to: " + before.value);
+        let chatContainer = document.getElementById("messages");
+        // chatContainer.scrollTo({
+        //   top: document.getElementById(before.value).offsetTop,
+        //   behavior: 'instant'
+        // });
+        document.getElementById(before.value).scrollIntoView({
+          behavior: 'instant',
+          block: 'start'
+        })
+      }
+    })
+  }
+
+  let observer = new IntersectionObserver(callback, options);
+
+  observer.observe(target);
+
+}
+
+const loadData = async () => {
   await fetchProfile()
   await fetchInfo()
   await fetchGroup()
   await fetchData()
+  // load more...
+  setUpLoadMore();
   nextTick(() => {
       scrollToBottom()
   })
@@ -147,8 +202,9 @@ messageInputz.addEventListener('blur', function() {
 
 watch(() => route.params.channel_id, newId => {
     channelId.value = newId;
-    loadData()
+    loadData();
 });
+
 
 </script>
 
@@ -165,9 +221,18 @@ watch(() => route.params.channel_id, newId => {
        
     </div>
     <!-- Chatbox content -->
-    <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }">
-      <GuestChat v-if="message.sender.id != currentUserId && channelMember" :message="message" :channelMember="channelMember"></GuestChat>
-      <UserChat v-if="message.sender.id == currentUserId && channelMember" :message="message" :channelMember="channelMember"></UserChat>
+    <div id="messages">
+      <div class="chat-view-loading" v-if="isLoading">
+        <div class="chat-view__loadmore chat-view__loadmore--top">
+          <div class="compBaseSpinnerContainer">
+            <a-spin/>
+          </div>
+        </div>
+      </div>
+      <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }" :id="message.id">
+        <GuestChat v-if="message.sender.id != currentUserId && channelMember" :message="message" :channelMember="channelMember"></GuestChat>
+        <UserChat v-if="message.sender.id == currentUserId && channelMember" :message="message" :channelMember="channelMember"></UserChat>
+      </div>
     </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">

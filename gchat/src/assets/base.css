@@ -87,8 +87,8 @@ body {
   height: 100vh;
   padding-top:5%;
   padding-bottom:11%;
-  overflow: auto;
-  overflow-x: hidden;
+  /* overflow: auto; */
+  /* overflow-x: hidden; */
 }
 .chatinfor-more{
   display: flex;
@@ -136,7 +136,7 @@ body {
   border-bottom: 1px solid #ccc;
   position: fixed;
   top:0;
-  height: 7%;
+  /* height: 7%; */
   width: 100%;
   z-index: 2;
   background-color: white;
@@ -281,6 +281,15 @@ body {
 .chatbox-content.show{
   width: 75%;
 }
+
+#messages {
+  width: 77vw;
+  border-left: 2px solid rgba(226,224,224,.66);
+  height: 82vh;
+  overflow: auto;
+  overflow-x: hidden;
+}
+
 .menu {
   position: fixed;
   top: 0;
@@ -751,4 +760,42 @@ button, input, optgroup, select, textarea {
 
 .channel-item {
   color: hsla(160, 100%, 37%, 1);
+}
+
+.chat-view__message .chat-view-loading {
+  position: relative;
+  height: 0;
+}
+
+.chat-view__message .chat-view__loadmore--top {
+  height: 100px;
+  top: 4px;
+  right: 8px;
+  left: 0;
+  box-shadow: 0 4px 24px rgba(191,194,196,.2);
+}
+
+.chat-view__message .chat-view__loadmore {
+  height: 100%;
+  display: -webkit-flex;
+  display: flex;
+  justify-items: center;
+  -webkit-align-items: center;
+  align-items: center;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+  visibility: hidden;
+  background: #fff;
+  opacity: .5;
+}
+
+.compBaseSpinnerContainer {
+  width: 100%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10px;
 }
