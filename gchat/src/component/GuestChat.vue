@@ -73,7 +73,7 @@ const formatLongText = (text) => {
    </div>
 
    <div class="guest_chat" v-else>
- <div class="guest_chat-container" v-if="props.message.msg_type != 'text'&& props.message.msg_type != 'quote_message'">
+ <div class="guest_chat-container" v-if="props.message.msg_type != 'text'&& props.message.msg_type != 'quote_message'&&props.message.msg_type != 'sticker'">
         <span class="change_member">{{props.message.text}}</span>
     </div>
     <div class="guest_chat-container" v-else>
