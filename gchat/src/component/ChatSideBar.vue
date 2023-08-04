@@ -28,7 +28,10 @@ const handleShowInfor = ()=>{
 <template>
   <div class="chatsidebar-container" v-if="!isInfor" >
     <div class="chatsidebar-header">
-      <img :src="channel.avatar" class="chatinfor-avt" placeholder="chatinfor-avt" />
+      <img v-if="channel.avatar" :src="channel.avatar" class="chatinfor-avt" placeholder="chatinfor-avt" />
+      <div class="image-gallery" v-else>
+      <img v-for="(image, index) in channel.group_images" :key="index" :src="image.avatar" class="chatinfor-avt-gr" :placeholder="'chatinfor-avt'" />
+  </div>
       <h2 class="chatinfor-title">
         {{ channel.channel_name }}
       </h2>
@@ -344,6 +347,16 @@ const handleShowInfor = ()=>{
   </div>
 </template>
 <style>
+.image-gallery {
+  display: flex;
+  align-items: center;
+}
+
+.chatinfor-avt-gr {
+  width: 33% ; /* Độ rộng hình ảnh */ /* Chiều cao hình ảnh */
+  height: 150px;
+  object-fit: cover; /* Đảm bảo hình ảnh không bị biến dạng */
+}
 .chatinfor-title-infor{
     font-size: 18px;
     line-height: 50px;

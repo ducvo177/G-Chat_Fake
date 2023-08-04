@@ -328,9 +328,14 @@ body {
 .image_attachment{
   margin-bottom: 100px;
 }
-.chatbox-title{
+.chatbox-header-content{
   margin-left: 20px;
   width: 95%;
+  height: 60px;
+}
+.chatbox-title{
+  margin:0;
+  height: 30px;
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;

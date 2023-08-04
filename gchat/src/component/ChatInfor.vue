@@ -102,7 +102,6 @@ const fetchSuggestUser = async (search = null) => {
                 .then(res => {
                   searchUserList.value= res.data.data.users
                   loading.value=false;
-                  console.log(searchUserList.value);
                 })
                 .catch(err => {
                     console.log(err);
@@ -119,7 +118,6 @@ function setUpLoadMore() {
         threshold: 1.0
     }
 
-    console.log("SetUp Called!");
     let target = document.getElementById(channels.value[channels.value.length - 1].channel_id);
 
     const callback = (entries, observer) => {
@@ -140,24 +138,6 @@ function setUpLoadMore() {
 
     observer.observe(target);
 }
-
-const formatLongText = (text) => {
-
-// Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
-text = text.replace(/<@all>/g, '<span class="extract-text__mention user"> @ Tất cả</span>');
-
-// Thay thế các từ có định dạng @abc thành <span class="extract-text__mention">abc</span>
-text = text.replace(/<@(\d+)>/g, (match, id) => {
-  const idToFind = id;
-  const foundElement = props.channelMember?.find(item => item.id === idToFind);
-  return foundElement ? '<span class="extract-text__mention user">@'+foundElement.fullname+'</span>': match;
-});
-
-// Thay thế các đoạn văn bản trong dấu **[ ]** thành <strong>[nội dung in đậm]</strong>
-text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-return text;
-};
 
 
 const handleClearSearchUser = () => {

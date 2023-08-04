@@ -13,7 +13,7 @@ const props = defineProps({
   }
 })
 
-const formatLongText = (text) => {
+const formatLongText = (text, mentions = []) => {
 
   // Thay thế <@all> thành <span class="extract-text__mention">Tất cả</span>
   text = text.replace(/<@all>/g, '<span class="extract-text__mention"> @ Tất cả</span>');
@@ -21,7 +21,7 @@ const formatLongText = (text) => {
   // Thay thế các từ có định dạng @abc thành <span class="extract-text__mention">abc</span>
   text = text.replace(/<@(\d+)>/g, (match, id) => {
     const idToFind = id;
-    const foundElement = props.channelMember?.find(item => item.id === idToFind);
+    const foundElement = mentions?.find(item => item.id === idToFind);
     return foundElement ? '<span class="extract-text__mention">@'+foundElement.fullname+'</span>': match;
   });
 
@@ -55,6 +55,7 @@ const formatLongText = (text) => {
 
   return result;
 };
+
 </script>
 <template>
   <div class="guest_chat" v-if="props.message.status == -1">
@@ -92,7 +93,7 @@ const formatLongText = (text) => {
            
         </div>
         <div v-else>
-          <div v-if="props.message.msg_type == 'text'||props.message.msg_type == 'quote_message'" class="guest_chat-text" v-html="formatLongText(props.message.text)">
+          <div v-if="props.message.msg_type == 'text'||props.message.msg_type == 'quote_message'" class="guest_chat-text" v-html="formatLongText(props.message.text, props.message?.mentions)">
           </div>
           <div v-if="props.message.msg_type == 'sticker'" class="guest_chat-text">
             {{ props.message.text }}

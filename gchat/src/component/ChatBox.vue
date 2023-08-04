@@ -40,9 +40,8 @@ async function fetchProfile() {
   try {
     const response = await axios.get(apiUrl)
     channelMember.value.push({id: response.data.data[0].id, fullname:response.data.data[0].fullname});
-    console.log("profile: " + response.data.data[0].fullname)
   } catch (error) {
-    console.error('Error fetching data:', error)
+    
   }
 }
 
@@ -73,6 +72,7 @@ async function fetchInfo() {
   try {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
+    console.log(channel.value);
   } catch (error) {
     console.error('Error fetching data:', error);
     router.push({ name: 'login' });
@@ -107,7 +107,6 @@ const scrollToBottom = () => {
   // Hàm để cuộn xuống đáy của div
   const chatbox = document.getElementById("messages");
   chatbox.scrollTop = chatbox.scrollHeight
-  console.log("scrolled!");
 }
 
 const toggleMenu = () => {
@@ -212,10 +211,15 @@ watch(() => route.params.channel_id, newId => {
   <div :class="{ 'chatbox-container': true, show: showMenu }" ref="chatboxRef">
     <!-- Chatbox header  -->
     <div class="chatbox-header">
+      <div class="chatbox-header-content">
         <h1 class="chatbox-title">
-            {{ channel.channel_name }}
-        </h1>
-        <div class="ellipsis" @click="toggleMenu" style="cursor:pointer;">
+          {{ channel.channel_name }}
+      </h1>
+      <span v-if="channel.channel_type=='group'" style="font-size: 14px;color: #828282; ">{{ channel.count_member}} thành viên</span>
+      <span v-if="channel.channel_type=='direct'" style="font-size: 14px;color: #828282; ">{{ channel.partner.position_name}}</span>
+      </div>
+       
+        <div class="ellipsis" @click="toggleMenu" style="cursor:pointer; right:0; position:absolute;">
             <EllipsisOutlined />            
         </div>
        
