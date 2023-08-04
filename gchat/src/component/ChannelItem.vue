@@ -40,6 +40,7 @@ const formatLongText = (text, mentions = []) => {
       ? '<span class="extract-text__mention">@' + foundElement.fullname + '</span>'
       : match
   })
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
   return text
 }
