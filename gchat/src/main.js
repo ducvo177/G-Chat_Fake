@@ -8,7 +8,7 @@ import App from './App.vue'
 import router from './router'
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, push, onValue } from "firebase/database";
-import EmojiPicker from 'vue-emoji-picker'
+
 
 
 const firebaseConfig = {
@@ -28,8 +28,5 @@ const database = getDatabase(appchat);
 
 app.use(createPinia())
 app.use(Antd);
-app.use(EmojiPicker);
 app.use(router);
 app.mount('#app')
-
-export{database,ref,push, onValue};

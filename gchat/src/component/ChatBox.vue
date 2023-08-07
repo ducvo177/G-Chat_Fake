@@ -4,7 +4,7 @@ import GuestChat from './GuestChat.vue'
 import UserChat from './UserChat.vue'
 import ChatSideBar from './ChatSideBar.vue'
 import { ref, onMounted, watch, nextTick } from 'vue'
-import EmojiPicker from 'vue-emoji-picker'
+import EmojiPicker from './EmojiPicker.vue';
 import { defineProps } from 'vue'
 import { routerKey, useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
@@ -35,10 +35,11 @@ let noMoreData = false
 const isLoading = ref(false)
 const isImagePreview = ref(true)
 const showEmojiPicker = ref(false)
+const pickerContainerRef = ref();
 
 const handleEmojiClick = (emoji) => {
   const messageInput = messageInputRef
-  messageInput.value += emoji.native
+  messageInput.value.value += emoji
 }
 
 async function fetchProfile() {
@@ -64,6 +65,7 @@ async function fetchGroup() {
 
 // Hàm để gọi API và lưu kết quả vào listMessage
 async function fetchData() {
+  chatLoading.value=true;
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
@@ -76,10 +78,12 @@ async function fetchData() {
 }
 
 async function fetchInfo() {
+  chatLoading.value=true;
   const apiUrl = `https://chat.ghtk.vn/api/v3/channels/info?channel_id=${channelId.value}&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
+    chatLoading.value = false
   } catch (error) {
     console.error('Error fetching data:', error)
     router.push({ name: 'login' })
@@ -105,6 +109,7 @@ function sendMess(messageText, image = null, formData) {
   isImagePreview.value = false
   messageInputRef.value.value = ''
   selectFiles.value = ''
+
   loadData()
 }
 
@@ -120,8 +125,10 @@ async function sendMessage(messageInput) {
       }
     })
     sendMess(messageInput, response.data.data, formData)
+    loadData()
   } else {
     sendMess(messageInput, null, formData)
+    loadData()
   }
 }
 
@@ -138,6 +145,7 @@ const toggleMenu = () => {
 const toogleEmoji = () => {
   showEmojiPicker.value = !showEmojiPicker.value
 }
+
 // Load more messages
 async function fetchMoreData() {
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}&before=${before.value}`
@@ -185,6 +193,7 @@ function setUpLoadMore() {
 }
 
 const loadData = async () => {
+  chatLoading.value=true;
   await fetchProfile()
   await fetchInfo()
   await fetchGroup()
@@ -194,6 +203,7 @@ const loadData = async () => {
   nextTick(() => {
     scrollToBottom()
   })
+  chatLoading.value = false;
 }
 
 onMounted(() => {
@@ -218,17 +228,16 @@ onMounted(() => {
       imageContain.style.display = 'block'
       sendmessageButton.style.display = 'block'
       const reader = new FileReader()
-
+      
       reader.onload = function () {
-        imagePreview.src = reader.result
-        imagePreview.style.display = 'block' // Hiển thị xem trước ảnh
+        imagePreview.src = reader.result;
+        imagePreview.style.display = 'block';
       }
 
       reader.readAsDataURL(selectedFiles[0])
 
       selectFiles.value = selectedFiles[0]
-
-      console.log(selectFiles.value)
+      inputElement.value = null;
     } else {
       selecteFilesIcon.style.display = 'block'
       sendmessageButton.style.display = 'none'
@@ -346,7 +355,7 @@ watch(
             height: 170px;
             background-color: #f5f4f4;
             display: none;
-            width: 72vw;
+            width: 70vw;
             position: absolute;
             bottom: 70px;
             border-top-left-radius: 30px;
@@ -376,10 +385,11 @@ watch(
           class="chatbox-footer-input"
           placeholder="Nhập tin nhắn"
           ref="messageInputRef"
+          @keyup.enter="sendMessage(messageInputRef.value)"
           style="margin-left: 10px"
           @focus="showEmojiPicker = false"
         />
-        <EmojiPicker v-if="showEmojiPicker" @emoji-click="handleEmojiClick" :title="true" />
+        <EmojiPicker v-if="showEmojiPicker" ref="pickerContainerRef" @emoji_click="handleEmojiClick" style="position: absolute; bottom:100px;right:23%;"/>
         <div class="chatbox-footer-attachment">
           <svg
             width="28"
@@ -446,7 +456,8 @@ watch(
           <input
             type="file"
             class="chatbox-footer-input-img"
-            style="position: absolute; right: 80px; opacity: 0; cursor: pointer"
+            ref="imageRef"
+            style="position: absolute; right: 290px; opacity: 0; cursor: pointer"
             multiple
           />
         </div>
