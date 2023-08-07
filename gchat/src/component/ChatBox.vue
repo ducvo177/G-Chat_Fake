@@ -1,13 +1,13 @@
 <script setup>
-import { EllipsisOutlined } from '@ant-design/icons-vue';
-import GuestChat from './GuestChat.vue';
-import UserChat from './UserChat.vue';
-import ChatSideBar from './ChatSideBar.vue';
-import { ref, onMounted, watch, nextTick } from 'vue';
-
+import { EllipsisOutlined } from '@ant-design/icons-vue'
+import GuestChat from './GuestChat.vue'
+import UserChat from './UserChat.vue'
+import ChatSideBar from './ChatSideBar.vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
+import EmojiPicker from 'vue-emoji-picker'
 import { defineProps } from 'vue'
-import { routerKey, useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import { routerKey, useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 
 const props = defineProps({
   channel_id: {
@@ -19,37 +19,44 @@ const props = defineProps({
 const route = useRoute()
 
 const router = useRouter()
-const channelId = ref(route.params.channel_id);
-const currentUserId = ref(localStorage.getItem("user_id"));
-const listMessage = ref([]);
-const access_token = ref(localStorage.getItem("token"));
+const channelId = ref(route.params.channel_id)
+const currentUserId = ref(localStorage.getItem('user_id'))
+const listMessage = ref([])
+const access_token = ref(localStorage.getItem('token'))
 const chatboxRef = ref()
-const showMenu = ref(false);
-const channel = ref([]);
-const messageInputRef = ref("");
-const selectFiles = ref([]);
+const showMenu = ref(false)
+const channel = ref([])
+const messageInputRef = ref('')
+const selectFiles = ref()
 const channelMember = ref([])
-const before = ref(null);
+const before = ref(null)
+const chatLoading = ref(true)
+let noMoreData = false
+const isLoading = ref(false)
+const isImagePreview = ref(true)
+const showEmojiPicker = ref(false)
 
-
-let noMoreData = false;
-const isLoading = ref(false);
+const handleEmojiClick = (emoji) => {
+  const messageInput = messageInputRef
+  messageInput.value += emoji.native
+}
 
 async function fetchProfile() {
   const apiUrl = `https://chat.ghtk.vn/api/v31/users?user_id=${currentUserId.value}&limit=40&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
-    channelMember.value.push({id: response.data.data[0].id, fullname:response.data.data[0].fullname});
-  } catch (error) {
-    
-  }
+    channelMember.value.push({
+      id: response.data.data[0].id,
+      fullname: response.data.data[0].fullname
+    })
+  } catch (error) {}
 }
 
 async function fetchGroup() {
   const apiUrl = `https://chat.ghtk.vn/api/v3/channel/members?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
-    response.data.data.forEach((data) => channelMember.value.push(data));
+    response.data.data.forEach((data) => channelMember.value.push(data))
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -59,9 +66,10 @@ async function fetchGroup() {
 async function fetchData() {
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
   try {
-    const response = await axios.get(apiUrl);
+    const response = await axios.get(apiUrl)
     listMessage.value = response.data.data.reverse()
-    noMoreData = (response.data.data.length < 40);
+    noMoreData = response.data.data.length < 40
+    chatLoading.value = false
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -72,40 +80,54 @@ async function fetchInfo() {
   try {
     const response = await axios.get(apiUrl)
     channel.value = response.data.data
-    console.log(channel.value);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    router.push({ name: 'login' });
+    console.error('Error fetching data:', error)
+    router.push({ name: 'login' })
   }
 }
 
-async function sendMessage(messageInput, selecteFiles) {
-      let formData = new FormData();
-        selecteFiles.forEach(file => {
-        formData.append('attachment', file);
-      });
-   
+function sendMess(messageText, image = null, formData) {
+  if (image) {
+    formData.append('file_id', image.id)
+  }
+  formData.append('channel_id', channelId.value)
+  formData.append('msg_type', 'text')
+  formData.append('ref_id', '1Pq2InaSrMP696rGQza5')
+  formData.append('text', messageText)
+  axios.post('https://chat.ghtk.vn/api/v3/messages', formData, {
+    headers: {
+      Authorization: `Bearer ${access_token.value}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  messageInputRef.value.style.borderTopLeftRadius = '30px'
+  messageInputRef.value.style.borderTopRightRadius = '30px'
+  isImagePreview.value = false
+  messageInputRef.value.value = ''
+  selectFiles.value = ''
+  loadData()
+}
 
-      formData.append('channel_id', channelId.value);
-      formData.append('msg_type', "text");
-      formData.append('ref_id', "1Pq2InaSrMP696rGQza5");
-      formData.append('text', messageInput);
+async function sendMessage(messageInput) {
+  let formData = new FormData()
+  if (selectFiles.value) {
+    formData.append('attachment', selectFiles.value, selectFiles.value.name)
 
-      await axios.post('https://chat.ghtk.vn/api/v3/messages', formData, {
-        headers: {
-          Authorization: `Bearer ${access_token.value}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      })
-      messageInputRef.value.value = '';
-      selectFiles.value = [];
-      loadData();
-      // this.fetchNewMessage();
-};
+    const response = await axios.post('https://chat.ghtk.vn/api/v3/public/upload', formData, {
+      headers: {
+        Authorization: `Bearer ${access_token.value}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    sendMess(messageInput, response.data.data, formData)
+  } else {
+    sendMess(messageInput, null, formData)
+  }
+}
 
 const scrollToBottom = () => {
   // Hàm để cuộn xuống đáy của div
-  const chatbox = document.getElementById("messages");
+  const chatbox = document.getElementById('messages')
   chatbox.scrollTop = chatbox.scrollHeight
 }
 
@@ -113,13 +135,16 @@ const toggleMenu = () => {
   showMenu.value = !showMenu.value // Đảo ngược trạng thái của menu
 }
 
+const toogleEmoji = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+}
 // Load more messages
 async function fetchMoreData() {
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}&before=${before.value}`
   try {
-    const response = await axios.get(apiUrl);
-    response.data.data.forEach((data) => listMessage.value.splice(0, 0, data));
-    noMoreData = (response.data.data.length < 40);
+    const response = await axios.get(apiUrl)
+    response.data.data.forEach((data) => listMessage.value.splice(0, 0, data))
+    noMoreData = response.data.data.length < 40
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -127,30 +152,25 @@ async function fetchMoreData() {
 
 function setUpLoadMore() {
   let options = {
-    root: document.getElementById("messages"),
-    rootMargin: "0px",
+    root: document.getElementById('messages'),
+    rootMargin: '0px',
     threshold: 1.0
   }
 
-  let target = document.getElementById(listMessage.value[0].id);
-
+  let target = document.getElementById(listMessage.value[0].id)
 
   const callback = (entries, observer) => {
-    entries.forEach( async (entry) => {
-      if(entry.isIntersecting && !noMoreData){
-        before.value = listMessage.value[0].id;
-        isLoading.value = true;
-        await fetchMoreData();
-        isLoading.value = false;
-        console.log(isLoading);
-        target = document.getElementById(listMessage.value[0].id);
-        observer.observe(target);
-        console.log("Called! Now scroll to: " + before.value);
-        let chatContainer = document.getElementById("messages");
-        // chatContainer.scrollTo({
-        //   top: document.getElementById(before.value).offsetTop,
-        //   behavior: 'instant'
-        // });
+    entries.forEach(async (entry) => {
+      if (entry.isIntersecting && !noMoreData) {
+        before.value = listMessage.value[0].id
+        isLoading.value = true
+        await fetchMoreData()
+        isLoading.value = false
+        console.log(isLoading)
+        target = document.getElementById(listMessage.value[0].id)
+        observer.observe(target)
+        console.log('Called! Now scroll to: ' + before.value)
+        let chatContainer = document.getElementById('messages')
         document.getElementById(before.value).scrollIntoView({
           behavior: 'instant',
           block: 'start'
@@ -159,10 +179,9 @@ function setUpLoadMore() {
     })
   }
 
-  let observer = new IntersectionObserver(callback, options);
+  let observer = new IntersectionObserver(callback, options)
 
-  observer.observe(target);
-
+  observer.observe(target)
 }
 
 const loadData = async () => {
@@ -171,40 +190,69 @@ const loadData = async () => {
   await fetchGroup()
   await fetchData()
   // load more...
-  setUpLoadMore();
+  setUpLoadMore()
   nextTick(() => {
-      scrollToBottom()
+    scrollToBottom()
   })
 }
 
 onMounted(() => {
-const messageInputz = document.querySelector('.chatbox-footer-input');
-const sendmessageButton = document.querySelector('.sendmessage-button');
-const selecteFilesIcon = document.querySelector('.chatbox-footer-image');
-
-messageInputz.addEventListener('focus', function() {
-    sendmessageButton.style.display = 'block';
+  const messageInputz = document.querySelector('.chatbox-footer-input')
+  const sendmessageButton = document.querySelector('.sendmessage-button')
+  const selecteFilesIcon = document.querySelector('.chatbox-footer-image')
+  const inputElement = document.querySelector('.chatbox-footer-input-img')
+  const imagePreview = document.querySelector('.image-preview')
+  const imageContain = document.querySelector('.image_preview_container')
+  messageInputz.addEventListener('focus', function () {
+    sendmessageButton.style.display = 'block'
     selecteFilesIcon.style.display = 'none'
-    
-});
+  })
 
-messageInputz.addEventListener('blur', function() {
-    if (!messageInputz.value.trim()) {
-        sendmessageButton.style.display = 'none';
-        selecteFilesIcon.style.display = 'block'
+  inputElement.addEventListener('change', function (event) {
+    const selectedFiles = event.target.files
+    if (selectedFiles.length > 0) {
+      messageInputz.style.borderTopLeftRadius = '0px'
+      messageInputz.style.borderTopRightRadius = '0px'
+
+      selecteFilesIcon.style.display = 'none'
+      imageContain.style.display = 'block'
+      sendmessageButton.style.display = 'block'
+      const reader = new FileReader()
+
+      reader.onload = function () {
+        imagePreview.src = reader.result
+        imagePreview.style.display = 'block' // Hiển thị xem trước ảnh
+      }
+
+      reader.readAsDataURL(selectedFiles[0])
+
+      selectFiles.value = selectedFiles[0]
+
+      console.log(selectFiles.value)
+    } else {
+      selecteFilesIcon.style.display = 'block'
+      sendmessageButton.style.display = 'none'
     }
-});
+  })
+
+  messageInputz.addEventListener('blur', function () {
+    if (!messageInputz.value.trim()) {
+      sendmessageButton.style.display = 'none'
+      selecteFilesIcon.style.display = 'block'
+    }
+  })
 
   channelId.value = route.params.channel_id
-  loadData();
+  loadData()
 })
 
-watch(() => route.params.channel_id, newId => {
-    channelId.value = newId;
-    loadData();
-});
-
-
+watch(
+  () => route.params.channel_id,
+  (newId) => {
+    channelId.value = newId
+    loadData()
+  }
+)
 </script>
 
 <template>
@@ -214,34 +262,124 @@ watch(() => route.params.channel_id, newId => {
       <div class="chatbox-header-content">
         <h1 class="chatbox-title">
           {{ channel.channel_name }}
-      </h1>
-      <span v-if="channel.channel_type=='group'" style="font-size: 14px;color: #828282; ">{{ channel.count_member}} thành viên</span>
-      <span v-if="channel.channel_type=='direct'" style="font-size: 14px;color: #828282; ">{{ channel.partner.position_name}}</span>
+        </h1>
+        <span v-if="channel.channel_type == 'group'" style="font-size: 14px; color: #828282"
+          >{{ channel.count_member }} thành viên</span
+        >
+        <span v-if="channel.channel_type == 'direct'" style="font-size: 14px; color: #828282">{{
+          channel.partner.position_name
+        }}</span>
       </div>
-       
-        <div class="ellipsis" @click="toggleMenu" style="cursor:pointer; right:0; position:absolute;">
-            <EllipsisOutlined />            
-        </div>
-       
+
+      <div
+        class="ellipsis"
+        @click="toggleMenu"
+        style="cursor: pointer; right: 0; position: absolute"
+      >
+        <EllipsisOutlined />
+      </div>
     </div>
     <!-- Chatbox content -->
     <div id="messages">
       <div class="chat-view-loading" v-if="isLoading">
         <div class="chat-view__loadmore chat-view__loadmore--top">
           <div class="compBaseSpinnerContainer">
-            <a-spin/>
+            <a-spin />
           </div>
         </div>
       </div>
-      <div v-for="message in listMessage" :class="{ 'chatbox-content': true, show: showMenu }" :id="message.id">
-        <GuestChat v-if="message.sender.id != currentUserId && channelMember" :message="message" :channelMember="channelMember"></GuestChat>
-        <UserChat v-if="message.sender.id == currentUserId && channelMember" :message="message" :channelMember="channelMember"></UserChat>
+      <div>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+        <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
+          <div class="search-user-result"></div>
+        </a-skeleton>
+      </div>
+      <div
+        v-for="message in listMessage"
+        :class="{ 'chatbox-content': true, show: showMenu }"
+        :id="message.id"
+      >
+        <GuestChat
+          v-if="message.sender.id != currentUserId && channelMember"
+          :message="message"
+          :channelMember="channelMember"
+        ></GuestChat>
+        <UserChat
+          v-if="message.sender.id == currentUserId && channelMember"
+          :message="message"
+          :channelMember="channelMember"
+        ></UserChat>
       </div>
     </div>
     <!-- Chatbox footer -->
     <div class="chatbox-footer">
       <div class="chatbox-footer_content">
-        <input type="text" class="chatbox-footer-input" placeholder="Nhập tin nhắn" ref="messageInputRef" />
+        <div
+          class="image_preview_container"
+          style="
+            height: 170px;
+            background-color: #f5f4f4;
+            display: none;
+            width: 72vw;
+            position: absolute;
+            bottom: 70px;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            margin-left: 10px;
+          "
+          v-if="isImagePreview"
+        >
+          <img
+            src=""
+            alt="Xem trước ảnh"
+            class="image-preview"
+            style="
+              display: none;
+              width: 130px;
+              height: 130px;
+              margin-top: 10px;
+              margin-left: 20px;
+              object-fit: cover;
+              border-radius: 10px;
+              border: 1px solid #ccc;
+            "
+          />
+        </div>
+        <input
+          type="text"
+          class="chatbox-footer-input"
+          placeholder="Nhập tin nhắn"
+          ref="messageInputRef"
+          style="margin-left: 10px"
+          @focus="showEmojiPicker = false"
+        />
+        <EmojiPicker v-if="showEmojiPicker" @emoji-click="handleEmojiClick" :title="true" />
         <div class="chatbox-footer-attachment">
           <svg
             width="28"
@@ -279,12 +417,14 @@ watch(() => route.params.channel_id, newId => {
               </clipPath>
             </defs>
           </svg>
+
           <svg
             width="24"
             class="emoji-icon chatbox-footer-icon"
             height="24"
             viewBox="0 0 24 24"
             fill="none"
+            @click="toogleEmoji"
           >
             <path
               d="M12 0C5.37257 0 0 5.37257 0 12C0 18.6274 5.37257 24 12 24C18.6274 24 24 18.6274 24 12C24 5.37257 18.6274 0 12 0ZM16.0095 7.72673C17.0291 7.72673 17.8557 8.55328 17.8557 9.57289C17.8557 10.5925 17.0291 11.419 16.0095 11.419C14.9899 11.419 14.1634 10.5925 14.1634 9.57289C14.1634 8.55328 14.9899 7.72673 16.0095 7.72673ZM7.99047 7.72673C9.01007 7.72673 9.83662 8.55328 9.83662 9.57289C9.83662 10.5925 9.01007 11.419 7.99047 11.419C6.97087 11.419 6.14432 10.5925 6.14432 9.57289C6.14432 8.55328 6.97087 7.72673 7.99047 7.72673ZM12 19.5165C8.86576 19.5165 6.03054 17.5383 4.94495 14.5938L6.42968 14.0464C7.28703 16.3717 9.52557 17.9341 12 17.9341C14.4744 17.9341 16.713 16.3717 17.5703 14.0464L19.0551 14.5938C17.9695 17.5383 15.1342 19.5165 12 19.5165Z"
@@ -303,12 +443,40 @@ watch(() => route.params.channel_id, newId => {
               fill="#00904A"
             ></path>
           </svg>
-          
+          <input
+            type="file"
+            class="chatbox-footer-input-img"
+            style="position: absolute; right: 80px; opacity: 0; cursor: pointer"
+            multiple
+          />
         </div>
         <div>
-          <button @click="sendMessage(messageInputRef.value,selectFiles)" class="sendmessage-button" style="border:none; background-color:#fff; margin-left:8px; margin-top:4px;" ><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="14" fill="#00904A"></rect><g clip-path="url(#clip0_9236_112452)"><path d="M13.0721 20.5416C13.0721 20.7957 13.1737 21.0395 13.3546 21.2192C13.5355 21.3989 13.7809 21.4999 14.0367 21.4999C14.2907 21.4913 14.5329 21.3914 14.7182 21.2187C14.8064 21.1293 14.8759 21.0234 14.9227 20.9072C14.9695 20.791 14.9926 20.6667 14.9908 20.5416V9.76033L15.536 10.2916L18.8808 13.6145C19.0574 13.7772 19.29 13.8666 19.5309 13.8645C19.6557 13.8659 19.7795 13.8426 19.8952 13.7961C20.0109 13.7496 20.1162 13.6808 20.2049 13.5936C20.2936 13.5064 20.3641 13.4026 20.4122 13.2882C20.4602 13.1738 20.485 13.051 20.485 12.927C20.4926 12.6805 20.4022 12.441 20.2333 12.2603L14.7077 6.78116C14.6191 6.69266 14.5137 6.62243 14.3976 6.57451C14.2816 6.52659 14.1571 6.50192 14.0314 6.50192C13.9058 6.50192 13.7813 6.52659 13.6653 6.57451C13.5492 6.62243 13.4438 6.69266 13.3552 6.78116L7.82954 12.2707C7.73135 12.3576 7.65274 12.4641 7.59887 12.5832C7.54626 12.7015 7.51775 12.829 7.51499 12.9582C7.51387 13.0869 7.53884 13.2144 7.58838 13.3332C7.63167 13.4528 7.70365 13.5601 7.79809 13.6457C7.88849 13.7373 7.99513 13.8114 8.11264 13.8645C8.23023 13.9069 8.35451 13.9281 8.47961 13.927C8.61352 13.9278 8.74597 13.8994 8.86756 13.8437C8.98507 13.7906 9.09171 13.7164 9.18211 13.6249L12.5373 10.2916L13.0721 9.76033V20.5416Z" fill="white"></path></g><defs><clipPath id="clip0_9236_112452"><rect width="12.97" height="15" fill="white" transform="translate(7.51501 6.5)"></rect></clipPath></defs></svg></button>
+          <button
+            @click="sendMessage(messageInputRef.value)"
+            class="sendmessage-button"
+            style="border: none; background-color: #fff; margin-left: 8px; margin-top: 4px"
+          >
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="14" fill="#00904A"></rect>
+              <g clip-path="url(#clip0_9236_112452)">
+                <path
+                  d="M13.0721 20.5416C13.0721 20.7957 13.1737 21.0395 13.3546 21.2192C13.5355 21.3989 13.7809 21.4999 14.0367 21.4999C14.2907 21.4913 14.5329 21.3914 14.7182 21.2187C14.8064 21.1293 14.8759 21.0234 14.9227 20.9072C14.9695 20.791 14.9926 20.6667 14.9908 20.5416V9.76033L15.536 10.2916L18.8808 13.6145C19.0574 13.7772 19.29 13.8666 19.5309 13.8645C19.6557 13.8659 19.7795 13.8426 19.8952 13.7961C20.0109 13.7496 20.1162 13.6808 20.2049 13.5936C20.2936 13.5064 20.3641 13.4026 20.4122 13.2882C20.4602 13.1738 20.485 13.051 20.485 12.927C20.4926 12.6805 20.4022 12.441 20.2333 12.2603L14.7077 6.78116C14.6191 6.69266 14.5137 6.62243 14.3976 6.57451C14.2816 6.52659 14.1571 6.50192 14.0314 6.50192C13.9058 6.50192 13.7813 6.52659 13.6653 6.57451C13.5492 6.62243 13.4438 6.69266 13.3552 6.78116L7.82954 12.2707C7.73135 12.3576 7.65274 12.4641 7.59887 12.5832C7.54626 12.7015 7.51775 12.829 7.51499 12.9582C7.51387 13.0869 7.53884 13.2144 7.58838 13.3332C7.63167 13.4528 7.70365 13.5601 7.79809 13.6457C7.88849 13.7373 7.99513 13.8114 8.11264 13.8645C8.23023 13.9069 8.35451 13.9281 8.47961 13.927C8.61352 13.9278 8.74597 13.8994 8.86756 13.8437C8.98507 13.7906 9.09171 13.7164 9.18211 13.6249L12.5373 10.2916L13.0721 9.76033V20.5416Z"
+                  fill="white"
+                ></path>
+              </g>
+              <defs>
+                <clipPath id="clip0_9236_112452">
+                  <rect
+                    width="12.97"
+                    height="15"
+                    fill="white"
+                    transform="translate(7.51501 6.5)"
+                  ></rect>
+                </clipPath>
+              </defs>
+            </svg>
+          </button>
         </div>
-        
       </div>
     </div>
   </div>
