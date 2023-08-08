@@ -4,10 +4,11 @@ import GuestChat from './GuestChat.vue'
 import UserChat from './UserChat.vue'
 import ChatSideBar from './ChatSideBar.vue'
 import { ref, onMounted, watch, nextTick } from 'vue'
-import EmojiPicker from './EmojiPicker.vue';
+import EmojiPicker from './EmojiPicker.vue'
 import { defineProps } from 'vue'
 import { routerKey, useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { Avatar, message } from 'ant-design-vue'
 
 const props = defineProps({
   channel_id: {
@@ -17,7 +18,6 @@ const props = defineProps({
 })
 
 const route = useRoute()
-
 const router = useRouter()
 const channelId = ref(route.params.channel_id)
 const currentUserId = ref(localStorage.getItem('user_id'))
@@ -35,7 +35,33 @@ let noMoreData = false
 const isLoading = ref(false)
 const isImagePreview = ref(true)
 const showEmojiPicker = ref(false)
-const pickerContainerRef = ref();
+const pickerContainerRef = ref()
+const isTyping = ref(false)
+const typingData = ref(null)
+
+const ws = new WebSocket(
+  `wss://ws.ghtk.vn/ws/chat?Authorization=${access_token.value}&appType=gchat&appVersion=2023-08-04,08:50:05&device=web&deviceId=tvUGqRHOuTxKgO7WmMq9&source=chats`
+)
+
+ws.onopen = function () {
+  ws.send(`${access_token.value}|sub|chats_user_${currentUserId.value}`)
+}
+
+ws.onmessage = function (event) {
+  let message = JSON.parse(event.data)
+  if (message.event === 'message') {
+    isTyping.value = false
+    typingData.value = null
+    loadData()
+  }
+  if (message.event === 'update_count_message_unread') {
+  }
+  if (message.event === 'typing'&&channelId.value ==message.data.channel_id) {
+    isTyping.value = true
+    typingData.value = message.data
+    scrollToBottom()
+  }
+}
 
 const handleEmojiClick = (emoji) => {
   const messageInput = messageInputRef
@@ -65,7 +91,7 @@ async function fetchGroup() {
 
 // Hàm để gọi API và lưu kết quả vào listMessage
 async function fetchData() {
-  chatLoading.value=true;
+  chatLoading.value = true
   const apiUrl = `https://chat.ghtk.vn/api/v3/messages?channel_id=${channelId.value}&limit=40&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
@@ -78,7 +104,7 @@ async function fetchData() {
 }
 
 async function fetchInfo() {
-  chatLoading.value=true;
+  chatLoading.value = true
   const apiUrl = `https://chat.ghtk.vn/api/v3/channels/info?channel_id=${channelId.value}&access_token=${access_token.value}`
   try {
     const response = await axios.get(apiUrl)
@@ -193,7 +219,7 @@ function setUpLoadMore() {
 }
 
 const loadData = async () => {
-  chatLoading.value=true;
+  chatLoading.value = true
   await fetchProfile()
   await fetchInfo()
   await fetchGroup()
@@ -203,10 +229,11 @@ const loadData = async () => {
   nextTick(() => {
     scrollToBottom()
   })
-  chatLoading.value = false;
+  chatLoading.value = false
 }
 
 onMounted(() => {
+  //Input tin nhắn
   const messageInputz = document.querySelector('.chatbox-footer-input')
   const sendmessageButton = document.querySelector('.sendmessage-button')
   const selecteFilesIcon = document.querySelector('.chatbox-footer-image')
@@ -228,16 +255,16 @@ onMounted(() => {
       imageContain.style.display = 'block'
       sendmessageButton.style.display = 'block'
       const reader = new FileReader()
-      
+
       reader.onload = function () {
-        imagePreview.src = reader.result;
-        imagePreview.style.display = 'block';
+        imagePreview.src = reader.result
+        imagePreview.style.display = 'block'
       }
 
       reader.readAsDataURL(selectedFiles[0])
 
       selectFiles.value = selectedFiles[0]
-      inputElement.value = null;
+      inputElement.value = null
     } else {
       selecteFilesIcon.style.display = 'block'
       sendmessageButton.style.display = 'none'
@@ -330,7 +357,7 @@ watch(
         </a-skeleton>
       </div>
       <div
-        v-for="message in listMessage"
+        v-for="(message, index) in listMessage"
         :class="{ 'chatbox-content': true, show: showMenu }"
         :id="message.id"
       >
@@ -344,6 +371,22 @@ watch(
           :message="message"
           :channelMember="channelMember"
         ></UserChat>
+      </div>
+      <div class="guest_chat" v-if="isTyping && typingData">
+        <div class="guest_chat-container">
+          <div class="guest_chat-img">
+            <Avatar size="{64}" :src="typingData.sender.avatar" />
+          </div>
+
+          <div class="guest_chat-content">
+            <h1 class="guest_chat-name">
+              {{ typingData.sender.fullname }}
+            </h1>
+            <div class="guest_chat-text">
+              <img src="https://www.perodua.com.my/assets/gif/loading5.gif" style="height: 30px" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Chatbox footer -->
@@ -389,7 +432,12 @@ watch(
           style="margin-left: 10px"
           @focus="showEmojiPicker = false"
         />
-        <EmojiPicker v-if="showEmojiPicker" ref="pickerContainerRef" @emoji_click="handleEmojiClick" style="position: absolute; bottom:100px;right:23%;"/>
+        <EmojiPicker
+          v-if="showEmojiPicker"
+          ref="pickerContainerRef"
+          @emoji_click="handleEmojiClick"
+          style="position: absolute; bottom: 100px; right: 23%"
+        />
         <div class="chatbox-footer-attachment">
           <svg
             width="28"
