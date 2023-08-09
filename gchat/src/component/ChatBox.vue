@@ -47,21 +47,29 @@ ws.onopen = function () {
   ws.send(`${access_token.value}|sub|chats_user_${currentUserId.value}`)
 }
 
-ws.onmessage = function (event) {
+const onMessage = () => {
+  ws.onmessage = function (event) {
   let message = JSON.parse(event.data)
   if (message.event === 'message') {
     isTyping.value = false
     typingData.value = null
     loadData()
   }
-  if (message.event === 'update_count_message_unread') {
-  }
-  if (message.event === 'typing'&&channelId.value ==message.data.channel_id) {
-    isTyping.value = true
-    typingData.value = message.data
-    scrollToBottom()
+
+  if (message.event === 'typing' && channelId.value == message.data.channel_id) {
+    if (message.data.type == 1) {
+      isTyping.value = true
+      typingData.value = message.data
+      scrollToBottom()
+    } else {
+      isTyping.value = false
+      typingData.data = null
+      scrollToBottom()
+    }
   }
 }
+}
+onMessage();
 
 const handleEmojiClick = (emoji) => {
   const messageInput = messageInputRef
@@ -217,7 +225,27 @@ function setUpLoadMore() {
 
   observer.observe(target)
 }
-
+const handleFocusInput = () => {
+  showEmojiPicker.value = false
+  // ws.send(
+  //   JSON.stringify({
+  //     channel: `chats_user_${currentUserId.value}`,
+  //     event: 'type',
+  //     data: {
+  //       sender: {
+  //         user_type:channel.value.partner.user_type,
+  //         id:channel.value.partner.id,
+  //         fullname:channel.value.partner.fullname,
+  //         avatar:channel.value.partner.avatar,
+  //         userId:channel.value.partner.id,
+  //       },
+  //       type: 1,
+  //       channel_id: channelId.value
+  //     }
+  //   })
+  // )
+  // onMessage();
+}
 const loadData = async () => {
   chatLoading.value = true
   await fetchProfile()
@@ -383,7 +411,7 @@ watch(
               {{ typingData.sender.fullname }}
             </h1>
             <div class="guest_chat-text">
-              <img src="https://www.perodua.com.my/assets/gif/loading5.gif" style="height: 30px" />
+              <img src="https://ghtk.me/images/dots.gif" style="height: 30px" />
             </div>
           </div>
         </div>
@@ -430,7 +458,7 @@ watch(
           ref="messageInputRef"
           @keyup.enter="sendMessage(messageInputRef.value)"
           style="margin-left: 10px"
-          @focus="showEmojiPicker = false"
+          @focus="handleFocusInput"
         />
         <EmojiPicker
           v-if="showEmojiPicker"

@@ -32,14 +32,15 @@ const searchUserList = ref([]);
 const loading = ref(false);
 const chatLoading = ref(true);
 const selectedUsers = ref([]);
+const currentUserId = ref(localStorage.getItem('user_id'))
+
 
 const fetchData = async () => {
-    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}`)
+    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=11&access_token=${token}`)
                 .then(res => {
-                    res.data.data.forEach((channel) => {
-                        channels.value.push(channel)
-                    });
-                    noMoreData = (res.data.data.length < 10);
+                   
+                    channels.value = res.data.data;
+                    noMoreData = (res.data.data.length < 11);
                     chatLoading.value = false
                 })
                 .catch(err => {
@@ -48,14 +49,32 @@ const fetchData = async () => {
                 });
 }
 
+
+const ws = new WebSocket(
+  `wss://ws.ghtk.vn/ws/chat?Authorization=${token}&appType=gchat&appVersion=2023-08-04,08:50:05&device=web&deviceId=tvUGqRHOuTxKgO7WmMq9&source=chats`
+)
+
+ws.onopen = function () {
+  ws.send(`${token}|sub|chats_user_${currentUserId.value}`)
+}
+
+ws.onmessage = function (event) {
+  let message = JSON.parse(event.data)
+  
+
+  if (message.event == 'update_count_message_unread' || message.event == 'message') {
+         fetchData();
+  }
+}
+
 const fetchMoreData = async () => {
-    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}&after=${after.value}`)
+    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=11&access_token=${token}&after=${after.value}`)
                 .then(res => {
                     
                     res.data.data.forEach((channel) => {
                         channels.value.push(channel)
                     });
-                    noMoreData = (res.data.data.length < 10);
+                    noMoreData = (res.data.data.length < 11);
                     
                 })
                 .catch(err => {
@@ -66,13 +85,13 @@ const fetchMoreData = async () => {
 
 const fetchFilterChannel = async() =>{
     chatLoading.value = true;
-    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=10&access_token=${token}&after=${after.value}&tag_id=${sort.value},${status.value}`)
+    await axios.get(`https://chat.ghtk.vn/api/v3/channels?group_id=${group_id}&limit=11&access_token=${token}&after=${after.value}&tag_id=${sort.value},${status.value}`)
                 .then(res => {
                     channels.value= [];
                     res.data.data.forEach((channel) => {
                         channels.value.push(channel)
                     });
-                    noMoreData = (res.data.data.length < 10);
+                    noMoreData = (res.data.data.length < 11);
                     chatLoading.value=false;
                 })
                 .catch(err => {
