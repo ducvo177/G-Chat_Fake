@@ -33,7 +33,7 @@ const before = ref(null)
 const chatLoading = ref(true)
 let noMoreData = false
 const isLoading = ref(false)
-const isImagePreview = ref(true)
+const imagePreviewContainer = ref(null)
 const showEmojiPicker = ref(false)
 const pickerContainerRef = ref()
 const isTyping = ref(false)
@@ -140,7 +140,7 @@ function sendMess(messageText, image = null, formData) {
   })
   messageInputRef.value.style.borderTopLeftRadius = '30px'
   messageInputRef.value.style.borderTopRightRadius = '30px'
-  isImagePreview.value = false
+  imagePreviewContainer.value.style.display = 'none'
   messageInputRef.value.value = ''
   selectFiles.value = ''
 
@@ -433,7 +433,7 @@ watch(
             border-top-right-radius: 30px;
             margin-left: 10px;
           "
-          v-if="isImagePreview"
+          ref="imagePreviewContainer"
         >
           <img
             src=""
