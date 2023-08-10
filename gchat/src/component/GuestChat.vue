@@ -1,5 +1,5 @@
 <script setup>
-import { Avatar, message } from 'ant-design-vue'
+import { Avatar, message, Image} from 'ant-design-vue'
 import { defineProps } from 'vue'
 import MessageTime from './MessageTime.vue';
 
@@ -88,7 +88,7 @@ const formatLongText = (text, mentions = []) => {
         </h1>
         <div v-if="props.message.attachments" >
             <div v-for="attachment in props.message.attachments">
-                <img class="image_attachment" :src="attachment.url" alt="Guest Attachment" />  
+                <Image class="image_attachment" width="260px" height="260px" :src="attachment.url" alt="Guest Attachment" />  
             </div>
            
         </div>

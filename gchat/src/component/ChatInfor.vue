@@ -252,7 +252,7 @@ onUpdated(() => {
     </div>
 
     <div class="list-channel" id="channels">
-        <div class="search-user-results" >
+        <div  >
             <a-skeleton :loading="chatLoading" :active="true" :avatar="true" :paragraph="2">
               <div class="search-user-result"></div>
             </a-skeleton>
@@ -352,16 +352,16 @@ onUpdated(() => {
             </div>
             </div>
         </div>
-        <div class="create-channel-button" v-if="selectedUsers.length!=0" @click="createNewChatGroup">Thêm chat mới</div>
-    
     </div>
+    <div class="create-channel-button" v-if="selectedUsers.length!=0"  @click="createNewChatGroup">Thêm chat mới</div>
   
 </div>
 </template>
 <style scoped>
 .search-user-container{
-    height: 85vh;
+    height: 79vh;
     align-items: flex-end;
+    overflow: auto;
 }
 .filteron {
   height: auto; /* Đặt chiều cao tự động khi isFilter = true */

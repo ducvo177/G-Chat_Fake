@@ -1,6 +1,8 @@
 <script setup>
 
 import { defineProps } from 'vue'
+import { Avatar, message, Image} from 'ant-design-vue'
+
 const props = defineProps({
     message: {
         type: Object,
@@ -62,7 +64,10 @@ return result;
     <div class="user_chat attachment" v-if="props.message.attachments">
         <div class="user_chat-content">
             <div v-for="attachment in props.message.attachments">
-                <img class="image_attachment" :src="attachment.url" alt="User Attachment" />  
+              <div>
+                  <Image  class="image_attachment" width="260px" height="260px" :src="attachment.url"  alt="User Attachment" />  
+              </div>
+          
             </div>
         </div>
     </div>

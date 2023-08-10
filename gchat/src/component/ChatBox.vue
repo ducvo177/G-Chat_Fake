@@ -60,6 +60,7 @@ const onMessage = () => {
     if (message.data.type == 1) {
       isTyping.value = true
       typingData.value = message.data
+
       scrollToBottom()
     } else {
       isTyping.value = false
@@ -400,7 +401,7 @@ watch(
           :channelMember="channelMember"
         ></UserChat>
       </div>
-      <div class="guest_chat" v-if="isTyping && typingData">
+      <div class="guest_chat" v-if="isTyping && typingData.channel_id== channelId">
         <div class="guest_chat-container">
           <div class="guest_chat-img">
             <Avatar size="{64}" :src="typingData.sender.avatar" />
@@ -533,7 +534,7 @@ watch(
             type="file"
             class="chatbox-footer-input-img"
             ref="imageRef"
-            style="position: absolute; right: 290px; opacity: 0; cursor: pointer"
+            style="position: absolute; right: 24%; opacity: 0; cursor: pointer; width:100px;"
             multiple
           />
         </div>
