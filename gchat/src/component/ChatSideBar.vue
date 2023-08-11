@@ -6,32 +6,73 @@ import {
   UserAddOutlined,
   TagOutlined,
   RightOutlined,
-LeftOutlined
+  LeftOutlined,
+  CodeSandboxOutlined
 } from '@ant-design/icons-vue'
-import{ Switch} from 'ant-design-vue';
+import { useRouter } from 'vue-router'
+import { Switch } from 'ant-design-vue'
+import axios from 'axios'
 const props = defineProps({
   channel: {
     type: Object
   }
 })
 
-
-const notification = ref(props.channel.is_notification == '1'?true : false);
+const token = localStorage.getItem('token')
+const router = useRouter()
+const notification = ref(props.channel.is_notification == '1' ? true : false)
 const handleChange = (value) => {
-    notification.value = value
+  notification.value = value
+  if (value == true) {
+    changeNotiStatus(1)
+  } else {
+    changeNotiStatus(0)
+  }
 }
-const isInfor = ref(false);
-const handleShowInfor = ()=>{
-    isInfor.value = !isInfor.value;
+
+const changeNotiStatus = async (value) => {
+  let formData = new FormData()
+
+  formData.append('channel_id', props.channel.channel_id)
+  formData.append('is_notification', value)
+  await axios
+    .put(`https://chat.ghtk.vn/api/v3/channel/members`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    .then((res) => {
+      console.log('dcm')
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+
+const isInfor = ref(false)
+const handleShowInfor = () => {
+  isInfor.value = !isInfor.value
 }
 </script>
 <template>
-  <div class="chatsidebar-container" v-if="!isInfor" >
+  <div class="chatsidebar-container" v-if="!isInfor">
     <div class="chatsidebar-header">
-      <img v-if="channel.avatar" :src="channel.avatar" class="chatinfor-avt" placeholder="chatinfor-avt" />
+      <img
+        v-if="channel.avatar"
+        :src="channel.avatar"
+        class="chatinfor-avt"
+        placeholder="chatinfor-avt"
+      />
       <div class="image-gallery" v-else>
-      <img v-for="(image, index) in channel.group_images" :key="index" :src="image.avatar" class="chatinfor-avt-gr" :placeholder="'chatinfor-avt'" />
-  </div>
+        <img
+          v-for="(image, index) in channel.group_images"
+          :key="index"
+          :src="image.avatar"
+          class="chatinfor-avt-gr"
+          :placeholder="'chatinfor-avt'"
+        />
+      </div>
       <h2 class="chatinfor-title">
         {{ channel.channel_name }}
       </h2>
@@ -39,7 +80,11 @@ const handleShowInfor = ()=>{
         <span class="active-member"> </span> Đang Hoạt Động
       </div>
       <div class="chatinfor-main">
-        <div class="chatinfor-circle" v-if="channel?.channel_type == 'direct'" @click="handleShowInfor">
+        <div
+          class="chatinfor-circle"
+          v-if="channel?.channel_type == 'direct'"
+          @click="handleShowInfor"
+        >
           <div
             style="
               width: 50px;
@@ -126,8 +171,7 @@ const handleShowInfor = ()=>{
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
           <p class="chatinfor-text">Tìm tin nhắn</p>
-          <div class="chatinfor-more">
-          </div>
+          <div class="chatinfor-more"></div>
         </div>
       </div>
 
@@ -143,7 +187,7 @@ const handleShowInfor = ()=>{
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
           <p class="chatinfor-text">Chat đã lưu</p>
           <div class="chatinfor-more">
-            <span>{{channel?.favorite.is_fav}}</span>
+            <span>{{ channel?.favorite.is_fav }}</span>
             <RightOutlined />
           </div>
         </div>
@@ -159,9 +203,9 @@ const handleShowInfor = ()=>{
           </svg>
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
-        <p class="chatinfor-text">Ảnh, file, link chia sẻ</p>
-        <div class="chatinfor-more">
-            <span>{{channel?.total_media}}</span>
+          <p class="chatinfor-text">Ảnh, file, link chia sẻ</p>
+          <div class="chatinfor-more">
+            <span>{{ channel?.total_media }}</span>
             <RightOutlined />
           </div>
         </div>
@@ -187,8 +231,8 @@ const handleShowInfor = ()=>{
           </svg>
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
-        <p class="chatinfor-text">Lịch hẹn</p>
-        <div class="chatinfor-more">
+          <p class="chatinfor-text">Lịch hẹn</p>
+          <div class="chatinfor-more">
             <span>2</span>
             <RightOutlined />
           </div>
@@ -231,7 +275,7 @@ const handleShowInfor = ()=>{
           </svg>
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
-        <p class="chatinfor-text">Mail chung</p>
+          <p class="chatinfor-text">Mail chung</p>
         </div>
       </div>
 
@@ -269,9 +313,9 @@ const handleShowInfor = ()=>{
           </svg>
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
-        <p class="chatinfor-text">Nhóm chung</p>
-        <div class="chatinfor-more">
-            <span>{{channel?.gr}}</span>
+          <p class="chatinfor-text">Nhóm chung</p>
+          <div class="chatinfor-more">
+            <span>{{ channel?.gr }}</span>
             <RightOutlined />
           </div>
         </div>
@@ -295,9 +339,9 @@ const handleShowInfor = ()=>{
           </svg>
         </div>
         <div style="border-bottom: 1px solid #d6d6d6; display: flex; width: 100%">
-        <p class="chatinfor-text">Thông báo</p>
-        <div class="chatinfor-more" style="margin-bottom: 10px;">
-            <Switch v-model:checked="notification" @change="handleChange"/>
+          <p class="chatinfor-text">Thông báo</p>
+          <div class="chatinfor-more" style="margin-bottom: 10px">
+            <Switch v-model:checked="notification" @change="handleChange" />
           </div>
         </div>
       </div>
@@ -312,37 +356,79 @@ const handleShowInfor = ()=>{
       </div>
     </div>
   </div>
-  <div class="chatsidebar-container" style="height: 100vh;" v-else>
-    <div class="chatsidebar-header-infor" >
-        <div style="position: absolute; color:#00904a; font-size: 18px; cursor: pointer; padding:10px;" @click="handleShowInfor">
-            <LeftOutlined />
-        </div>
-       
-      <h2 class="chatinfor-title-infor">
-       Thông tin
-      </h2>
+  <div class="chatsidebar-container" style="height: 100vh" v-else>
+    <div class="chatsidebar-header-infor">
+      <div
+        style="position: absolute; color: #00904a; font-size: 18px; cursor: pointer; padding: 10px"
+        @click="handleShowInfor"
+      >
+        <LeftOutlined />
+      </div>
+
+      <h2 class="chatinfor-title-infor">Thông tin</h2>
     </div>
-    <div style="background-color: #fff; height:23.3vh; margin-top:10px;">
-        <div style="margin:5px 15px; border-bottom: 1px solid #d6d6d6; height: 50px; line-height: 50px; width: 92%; display: flex;
-  justify-content: space-between;">
-            <span style="    font-size: 15px; font-weight: 400;">Username</span> 
-            <span style="  font-size: 15px;  color: rgb(102, 102, 102);"> {{ channel.partner.username }}</span>
-        </div>
-        <div style="margin:5px 15px; border-bottom: 1px solid #d6d6d6; height: 50px; line-height: 50px; width: 92%; display: flex;
-  justify-content: space-between;">
-            <span style="    font-size: 15px; font-weight: 400;">Vị Trí</span> 
-            <span style="  font-size: 15px;  color: rgb(102, 102, 102);"> {{ channel.partner.duty }}</span>
-        </div>
-        <div style="margin:5px 15px; border-bottom: 1px solid #d6d6d6; height: 50px; line-height: 50px; width: 92%; display: flex;
-  justify-content: space-between;">
-            <span style="    font-size: 15px; font-weight: 400;">Chức vụ</span> 
-            <span style="  font-size: 15px;  color: rgb(102, 102, 102);"> {{ channel.partner.position_name }}</span>
-        </div>
-        <div style="margin:5px 15px; height: 50px; line-height: 50px; width: 92%; display: flex;
-  justify-content: space-between;">
-            <span style="    font-size: 15px; font-weight: 400;">Kho</span> 
-            <span style="  font-size: 15px;  color: rgb(102, 102, 102);"> {{ channel.partner.station_name }}</span>
-        </div>
+    <div style="background-color: #fff; height: 23.3vh; margin-top: 10px">
+      <div
+        style="
+          margin: 5px 15px;
+          border-bottom: 1px solid #d6d6d6;
+          height: 50px;
+          line-height: 50px;
+          width: 92%;
+          display: flex;
+          justify-content: space-between;
+        "
+      >
+        <span style="font-size: 15px; font-weight: 400">Username</span>
+        <span style="font-size: 15px; color: rgb(102, 102, 102)">
+          {{ channel.partner.username }}</span
+        >
+      </div>
+      <div
+        style="
+          margin: 5px 15px;
+          border-bottom: 1px solid #d6d6d6;
+          height: 50px;
+          line-height: 50px;
+          width: 92%;
+          display: flex;
+          justify-content: space-between;
+        "
+      >
+        <span style="font-size: 15px; font-weight: 400">Vị Trí</span>
+        <span style="font-size: 15px; color: rgb(102, 102, 102)"> {{ channel.partner.duty }}</span>
+      </div>
+      <div
+        style="
+          margin: 5px 15px;
+          border-bottom: 1px solid #d6d6d6;
+          height: 50px;
+          line-height: 50px;
+          width: 92%;
+          display: flex;
+          justify-content: space-between;
+        "
+      >
+        <span style="font-size: 15px; font-weight: 400">Chức vụ</span>
+        <span style="font-size: 15px; color: rgb(102, 102, 102)">
+          {{ channel.partner.position_name }}</span
+        >
+      </div>
+      <div
+        style="
+          margin: 5px 15px;
+          height: 50px;
+          line-height: 50px;
+          width: 92%;
+          display: flex;
+          justify-content: space-between;
+        "
+      >
+        <span style="font-size: 15px; font-weight: 400">Kho</span>
+        <span style="font-size: 15px; color: rgb(102, 102, 102)">
+          {{ channel.partner.station_name }}</span
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -353,18 +439,18 @@ const handleShowInfor = ()=>{
 }
 
 .chatinfor-avt-gr {
-  width: 33% ; /* Độ rộng hình ảnh */ /* Chiều cao hình ảnh */
+  width: 33%; /* Độ rộng hình ảnh */ /* Chiều cao hình ảnh */
   height: 150px;
   object-fit: cover; /* Đảm bảo hình ảnh không bị biến dạng */
 }
-.chatinfor-title-infor{
-    font-size: 18px;
-    line-height: 50px;
-    color: black;
+.chatinfor-title-infor {
+  font-size: 18px;
+  line-height: 50px;
+  color: black;
 }
-.chatsidebar-header-infor{
-    height: 60px;
-    background-color: #fff;
+.chatsidebar-header-infor {
+  height: 60px;
+  background-color: #fff;
   text-align: center;
 }
 .chatsidebar-container {
@@ -414,8 +500,8 @@ const handleShowInfor = ()=>{
   padding-top: 20px;
   font-weight: 700;
 }
-.chatinfor-circle{
-    cursor: pointer;
+.chatinfor-circle {
+  cursor: pointer;
 }
 .chatsidebar-content {
   margin-top: 15px;
@@ -431,7 +517,7 @@ const handleShowInfor = ()=>{
   margin: 30px 40px 0 40px;
   justify-content: space-between;
 }
-.ant-switch-checked{
-    background-color: #14a05b;
+.ant-switch-checked {
+  background-color: #14a05b;
 }
 </style>

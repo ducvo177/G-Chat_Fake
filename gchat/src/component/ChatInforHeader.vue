@@ -41,6 +41,7 @@ const handleCreateNewChat = () => {
 .chatinfo-header {
     display: flex;
     padding: 20px 10px;
+    justify-content: space-between;
 }
 
 .channel-list-title-wrapper {
